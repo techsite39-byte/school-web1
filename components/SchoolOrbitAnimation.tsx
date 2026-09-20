@@ -1,298 +1,338 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+import { useEffect, useRef } from "react";
+import { schoolBrand } from "@/data/site";
 
-const orbitPhotos = [
-  "https://samcbse.org/images/about/1.png",
-  "https://samcbse.org/images/gallery/s1.jpg",
-  "https://samcbse.org/images/gallery/s2.jpg",
-  "https://samcbse.org/images/gallery/s3.jpg",
-  "https://samcbse.org/images/gallery/s11.jpg",
-];
+gsap.registerPlugin(ScrollTrigger);
 
-const photoDetails = [
-  {
-    title: "Our Campus",
-    description: "Discover the spaces where learning, creativity and growth come together.",
-    href: "/facilities",
-  },
-  {
-    title: "Learning Spaces",
-    description: "Modern classrooms and inspiring environments designed for students.",
-    href: "/academics",
-  },
-  {
-    title: "School Life",
-    description: "A vibrant learning community filled with activities and experiences.",
-    href: "/about",
-  },
-  {
-    title: "Sports & Activities",
-    description: "Explore our sports facilities and opportunities beyond academics.",
-    href: "/facilities",
-  },
-  {
-    title: "Our School",
-    description: "A welcoming environment built around learning and holistic development.",
-    href: "/about",
-  },
-];
-
-const starField = Array.from({ length: 28 }, (_, index) => ({
-  id: index,
-  left: `${(index * 17) % 100}%`,
-  top: `${(index * 29) % 100}%`,
-  size: 2 + (index % 4),
-  delay: index * 0.5,
-}));
+const studentImage = "/sschool-boy.png";
+const schoolImage = "/school.png";
+const schoolAlternateImage = "/school2.png";
 
 export function SchoolOrbitAnimation({ hero = false }: { hero?: boolean }) {
-  const [time, setTime] = useState(0);
-  const [pointer, setPointer] = useState({ x: 0, y: 0 });
-  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const selectedPhotoRef = useRef<number | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const studentRef = useRef<HTMLDivElement | null>(null);
+  const studentImageRef = useRef<HTMLImageElement | null>(null);
+  const schoolRef = useRef<HTMLDivElement | null>(null);
+  const schoolAlternateRef = useRef<HTMLDivElement | null>(null);
+  const textRef = useRef<HTMLDivElement | null>(null);
+  const orbitRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    selectedPhotoRef.current = selectedPhoto;
-  }, [selectedPhoto]);
+    if (typeof window === "undefined") return;
 
-  useEffect(() => {
-    let frame = 0;
-    const start = performance.now();
+    const lenis = new Lenis({
+      duration: 1.2,
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 1.2,
+      lerp: 0.08,
+    });
 
-    const tick = (now: number) => {
-      const elapsed = (now - start) / 1000;
-      if (selectedPhotoRef.current === null) setTime(elapsed);
-      frame = requestAnimationFrame(tick);
+    let rafId = 0;
+    const tick = (time: number) => {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(tick);
     };
 
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const updateViewport = () => setIsMobile(mediaQuery.matches);
-    updateViewport();
-    mediaQuery.addEventListener("change", updateViewport);
-    return () => mediaQuery.removeEventListener("change", updateViewport);
-  }, []);
-
-  useEffect(() => {
-    if (focusTimer.current) {
-      clearTimeout(focusTimer.current);
-      focusTimer.current = null;
-    }
-
-    if (selectedPhoto !== null) {
-      focusTimer.current = setTimeout(() => setSelectedPhoto(null), 20000);
-    }
+    rafId = requestAnimationFrame(tick);
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      if (focusTimer.current) clearTimeout(focusTimer.current);
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [selectedPhoto]);
-
-  useEffect(() => () => {
-    if (focusTimer.current) clearTimeout(focusTimer.current);
   }, []);
 
-  const focusPhoto = (index: number) => {
-    setSelectedPhoto((current) => (current === index ? null : index));
-  };
+  useEffect(() => {
+    const section = sectionRef.current;
+    const student = studentRef.current;
+    const studentImage = studentImageRef.current;
+    const school = schoolRef.current;
+    const schoolAlt = schoolAlternateRef.current;
+    const text = textRef.current;
+    const orbit = orbitRef.current;
 
-  const orbitItems = useMemo(
-    () =>
-      orbitPhotos.map((src, index) => ({
-        src,
-        alt: `School campus photo ${index + 1}`,
-        angle: (index * Math.PI * 2) / orbitPhotos.length,
-      })),
-    [],
-  );
+    if (!section || !student || !studentImage || !school || !schoolAlt || !text || !orbit) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion) {
+      gsap.set([student, school, orbit], { clearProps: "all" });
+      gsap.set(text, { opacity: 1 });
+      gsap.set(student, { scale: 1.08 });
+      gsap.set(school, { opacity: 1, scale: 1.02 });
+      return;
+    }
+
+    const words = text.querySelectorAll(".hero-word");
+    const actions = text.querySelectorAll(".hero-cta");
+    const altCopy = text.querySelectorAll(".hero-alt-copy");
+    const eyeFocus = { x: 0.62, y: 0.23 };
+    const camera = { progress: 0, scale: 1, x: 0, y: 0 };
+
+    const updateEyeCamera = () => {
+      const viewportCenterX = window.innerWidth * 0.5;
+      const viewportCenterY = window.innerHeight * 0.5;
+      const scale = 1 + camera.progress * 8.6;
+
+      const eyeScreenX = window.innerWidth * eyeFocus.x;
+      const eyeScreenY = window.innerHeight * eyeFocus.y;
+      const x = (viewportCenterX - eyeScreenX) * (scale - 1);
+      const y = (viewportCenterY - eyeScreenY) * (scale - 1);
+
+      camera.scale = scale;
+      camera.x = x;
+      camera.y = y;
+
+      gsap.set(studentImage, {
+        scale,
+        x,
+        y,
+        force3D: true,
+        transformOrigin: "center center",
+      });
+    };
+
+    gsap.set(student, {
+      opacity: 1,
+      filter: "blur(0px)",
+      clipPath: "inset(0% 0% 0% 0% round 0%)",
+    });
+
+    gsap.set(studentImage, {
+      scale: 1,
+      x: 0,
+      y: 0,
+      transformOrigin: "center center",
+    });
+
+    gsap.set(school, {
+      opacity: 0,
+      scale: 1.18,
+      x: 0,
+      y: 0,
+      filter: "blur(18px)",
+      clipPath: "inset(18% 18% 18% 18% round 6%)",
+    });
+
+    gsap.set(schoolAlt, {
+      opacity: 0,
+      scale: 1.12,
+      filter: "blur(18px)",
+      clipPath: "inset(8% 8% 8% 8% round 0%)",
+    });
+
+    gsap.set(orbit, { opacity: 0, scale: 0.9 });
+    gsap.set(words, { opacity: 0, y: 42, filter: "blur(10px)" });
+    gsap.set(altCopy, { opacity: 0, y: 20, filter: "blur(10px)" });
+    gsap.set(actions, { opacity: 0, y: 28, filter: "blur(10px)" });
+
+    const timeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1.2,
+        pin: true,
+        invalidateOnRefresh: true,
+        anticipatePin: 1,
+      },
+    });
+
+    timeline
+      .to(camera, {
+        progress: 1.25,
+        ease: "none",
+        duration: 2.4,
+        onUpdate: updateEyeCamera,
+      }, 0)
+      .to(student, {
+        opacity: 0,
+        filter: "blur(10px)",
+        duration: 0.55,
+        ease: "power2.inOut",
+      }, 2.05)
+      .to(school, {
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px)",
+        clipPath: "inset(0% 0% 0% 0% round 0%)",
+        duration: 0.9,
+        ease: "power2.inOut",
+      }, 2.05)
+      .to(schoolAlt, {
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px)",
+        clipPath: "inset(0% 0% 0% 0% round 0%)",
+        duration: 1.3,
+        ease: "power2.inOut",
+      }, 3.05)
+      .to(text, {
+        opacity: 1,
+        duration: 0.9,
+        ease: "power2.out",
+      }, 3.35)
+      .to(words, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        stagger: 0.12,
+        duration: 0.9,
+        ease: "power2.out",
+      }, 3.5)
+      .to(altCopy, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.9,
+        ease: "power2.out",
+      }, 3.95)
+      .to(actions, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        stagger: 0.12,
+        duration: 0.9,
+        ease: "power2.out",
+      }, 4.1)
+      .to(orbit, {
+        opacity: 1,
+        scale: 1,
+        duration: 0.85,
+        ease: "power2.out",
+      }, 4.55)
+      .to(text, {
+        boxShadow: "0 0 80px rgba(255,255,255,0.1)",
+        duration: 0.7,
+      }, 4.9)
+      .to(student, {
+        opacity: 0,
+        duration: 0.4,
+      }, 5.1);
+
+    window.addEventListener("resize", updateEyeCamera);
+
+    return () => {
+      timeline.scrollTrigger?.kill();
+      timeline.kill();
+      window.removeEventListener("resize", updateEyeCamera);
+    };
+  }, [hero]);
 
   return (
-    <div
-      className={hero ? "relative h-[100vh] w-full overflow-hidden bg-[#020b15]" : "relative h-[480px] w-full overflow-hidden rounded-[2rem] border border-white/15 bg-[#020b15] shadow-[0_30px_80px_rgba(2,8,23,0.45)] md:h-[560px]"}
-      onMouseMove={(event) => {
-        const bounds = event.currentTarget.getBoundingClientRect();
-        const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
-        const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
-        setPointer({ x, y });
-      }}
-      onMouseLeave={() => setPointer({ x: 0, y: 0 })}
+    <section
+      ref={sectionRef}
+      className={hero ? "relative h-[220vh] w-full overflow-hidden bg-[#040b16]" : "relative h-[540px] w-full overflow-hidden bg-[#040b16]"}
+      aria-label="Cinematic school hero"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(30,64,175,0.32),transparent_32%),radial-gradient(circle_at_top,_rgba(56,189,248,0.18),transparent_44%),linear-gradient(180deg,#040b16_0%,#061625_55%,#040b16_100%)]" />
+      <div className="sticky top-0 h-screen overflow-hidden bg-[#040b16]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(95,124,167,0.28),transparent_30%),linear-gradient(180deg,rgba(5,10,18,0.15),rgba(5,10,18,0.6))]" />
 
-      <div className="absolute inset-0 opacity-70">
-        {starField.map((star) => (
-          <span
-            key={star.id}
-            className="absolute rounded-full bg-white/80"
-            style={{
-              left: star.left,
-              top: star.top,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              boxShadow: "0 0 12px rgba(255,255,255,0.5)",
-              animation: `twinkle ${3 + (star.id % 5)}s ease-in-out infinite`,
-              animationDelay: `${star.delay}s`,
-            }}
-          />
-        ))}
-      </div>
+        <div className="absolute inset-0 overflow-hidden">
+          <div ref={studentRef} className="absolute inset-0 z-10 flex items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(112,142,191,0.32),rgba(10,15,24,0.9)_62%)]">
+            <img
+              ref={studentImageRef}
+              src={studentImage}
+              alt="Student portrait"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+                const parent = event.currentTarget.parentElement;
+                if (parent) {
+                  parent.style.background = "radial-gradient(circle at center, rgba(32,52,72,0.72), rgba(5,10,16,1))";
+                }
+              }}
+              className="h-full w-full object-cover"
+              style={{
+                objectPosition: "58% 27%",
+                filter: "saturate(0.9) contrast(1.06) brightness(0.9)",
+              }}
+            />
+          </div>
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.075),transparent_60%)]" />
+          <div ref={schoolRef} className="absolute inset-0 z-0">
+            <img
+              src={schoolImage}
+              alt="School campus"
+              className="h-full w-full object-cover object-center"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+                const parent = event.currentTarget.parentElement;
+                if (parent) {
+                  parent.style.background = "radial-gradient(circle at center, rgba(10,20,36,0.75), rgba(2,6,18,1))";
+                }
+              }}
+              style={{
+                filter: "contrast(1.08) saturate(0.92) brightness(0.9)",
+                transformOrigin: "center center",
+              }}
+            />
+          </div>
 
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[260px] w-[880px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-sky-400/20 [transform:translate(-50%,-50%)_rotateX(64deg)] md:h-[320px] md:w-[1120px] lg:h-[390px] lg:w-[1400px]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[180px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/10 [transform:translate(-50%,-50%)_rotateX(64deg)] md:h-[230px] md:w-[930px] lg:h-[280px] lg:w-[1160px]" />
+          <div ref={schoolAlternateRef} className="absolute inset-0 z-0 opacity-0">
+            <img
+              src={schoolAlternateImage}
+              alt="School campus second view"
+              className="h-full w-full object-cover object-center"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+                const parent = event.currentTarget.parentElement;
+                if (parent) {
+                  parent.style.background = "radial-gradient(circle at center, rgba(10,20,36,0.75), rgba(2,6,18,1))";
+                }
+              }}
+              style={{
+                filter: "contrast(1.08) saturate(0.92) brightness(0.9)",
+                transformOrigin: "center center",
+              }}
+            />
+          </div>
 
-      <div className="relative h-full w-full [perspective:1800px]">
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            x: pointer.x * -18,
-            y: pointer.y * -12,
-          }}
-          transition={{ type: "spring", stiffness: 25, damping: 18, mass: 0.8 }}
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {orbitItems.map((item, index) => {
-            const angle = time * 0.24 + item.angle;
-            const orbitX = 560;
-            const orbitZ = 360;
-            const x = Math.cos(angle) * orbitX;
-            const z = Math.sin(angle) * orbitZ;
-            const y = Math.sin(angle) * 38;
-            const frontStrength = (Math.sin(angle) + 1) / 2;
-            const scale = 0.58 + frontStrength * 0.55;
-            const opacity = 0.28 + frontStrength * 0.72;
-            const width = 172 + frontStrength * 76;
-            const height = 114 + frontStrength * 50;
-            const tilt = Math.cos(angle) * -7;
-            const isFocused = selectedPhoto === index;
-            const isOtherFocused = selectedPhoto !== null && !isFocused;
-            const photoIndex = index;
-            const focusX = isMobile ? 0 : -250;
-            const focusY = isMobile ? -105 : 0;
-            const focusWidth = isMobile ? 310 : 520;
-            const focusHeight = isMobile ? 207 : 339;
+          <div ref={orbitRef} className="absolute inset-0 opacity-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(11,18,33,0.34),transparent_42%)]" />
+          </div>
+        </div>
 
-            return (
-              <motion.div
-                key={item.src}
-                className="absolute left-1/2 top-1/2"
-                role="button"
-                tabIndex={0}
-                aria-label={`${isFocused ? "Close details for" : "View details for"} ${photoDetails[photoIndex].title}`}
-                onClick={() => focusPhoto(photoIndex)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    focusPhoto(photoIndex);
-                  }
-                }}
-                animate={{
-                  x: isFocused ? focusX : x,
-                  y: isFocused ? focusY : y,
-                  z: isFocused ? 470 : z,
-                  rotateZ: isFocused ? 0 : tilt,
-                  opacity: isFocused ? 1 : isOtherFocused ? 0 : opacity,
-                  scale: isFocused ? 1 : isOtherFocused ? 0.8 : scale,
-                  filter: isFocused ? "brightness(1.35) saturate(1.1)" : `brightness(${0.55 + frontStrength}) saturate(${0.85 + frontStrength})`,
-                }}
-                transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1] as const }}
-                style={{
-                  zIndex: isFocused ? 1000 : Math.round(500 + z),
-                  pointerEvents: isOtherFocused ? "none" : "auto",
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                <div className="relative -translate-x-1/2 -translate-y-1/2">
-                  <motion.div
-                    className={`overflow-hidden rounded-[1.5rem] border bg-slate-900/50 ${isFocused ? "border-sky-200/80 shadow-[0_0_60px_rgba(125,211,252,0.55)]" : "border-white/35 shadow-[0_25px_70px_rgba(14,116,144,0.35)]"}`}
-                    animate={{
-                      width: isFocused ? focusWidth : width,
-                      height: isFocused ? focusHeight : height,
-                    }}
-                    transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1] as const }}
-                  >
-                    <img src={item.src} alt={item.alt} className="h-full w-full object-cover" loading="eager" />
-                  </motion.div>
-                </div>
-              </motion.div>
-            );
-          })}
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,18,0.2),rgba(2,6,18,0.66))]" />
 
-          <motion.div
-            className="absolute left-1/2 top-1/2"
-            animate={{
-              y: [0, -14, 0],
-              scale: [1, 1.03, 1],
-            }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            <div className="relative -translate-x-1/2 -translate-y-1/2">
-              <div
-                className="overflow-hidden rounded-[2.2rem] border border-sky-200/30 bg-white/5 shadow-[0_0_80px_rgba(14,116,144,0.32)]"
-                style={{
-                  width: 460,
-                  height: 300,
-                  transform: "translateZ(160px)",
-                }}
-              >
-                <img
-                  src="https://samcbse.org/images/about/1.png"
-                  alt="Sri Aurobindo Mira Universal School main building"
-                  className="h-full w-full object-cover"
-                  loading="eager"
-                />
-              </div>
+        <div ref={textRef} className="relative z-20 flex h-full items-center justify-center px-5 text-center text-white md:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="hero-badge mb-6 inline-flex rounded-full border border-white/18 bg-white/7 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.38em] text-sky-100/90 backdrop-blur-sm">
+              {schoolBrand.name}
             </div>
-          </motion.div>
 
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 md:h-[500px] md:w-[500px]" />
+            <h1 className="text-4xl font-semibold leading-[0.9] tracking-[-0.06em] md:text-6xl lg:text-7xl">
+              <span className="hero-word inline-block">World-class</span>{" "}
+              <span className="hero-word inline-block">education</span>{" "}
+              <span className="hero-word inline-block">rooted in</span>{" "}
+              <span className="hero-word inline-block">values</span>
+            </h1>
 
-          <AnimatePresence>
-            {selectedPhoto !== null ? (
-              <motion.aside
-                key={selectedPhoto}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 24 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="pointer-events-auto absolute bottom-5 right-4 z-[1100] flex min-h-[207px] w-[min(310px,calc(100%-2rem))] flex-col justify-center rounded-2xl border border-white/20 bg-slate-950/60 p-6 text-white shadow-[0_20px_70px_rgba(2,8,23,0.45)] backdrop-blur-xl md:bottom-auto md:right-10 md:top-1/2 md:min-h-[339px] md:w-[520px] md:-translate-y-1/2 md:p-10"
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-200/75">Featured view</p>
-                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{photoDetails[selectedPhoto].title}</h3>
-                <p className="mt-3 max-w-md text-sm leading-6 text-slate-300 md:text-base md:leading-7">{photoDetails[selectedPhoto].description}</p>
-                <a href={photoDetails[selectedPhoto].href} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sky-200 transition hover:text-white">
-                  Explore <span className="transition-transform group-hover:translate-x-1">→</span>
-                </a>
-              </motion.aside>
-            ) : null}
-          </AnimatePresence>
-        </motion.div>
-      </div>
+            <p className="hero-summary mx-auto mt-5 max-w-2xl text-sm leading-7 text-slate-200 md:text-base">
+              {schoolBrand.tagline}
+            </p>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-8 z-20 text-center md:bottom-12">
-        <div className="mx-auto inline-flex rounded-full border border-white/15 bg-slate-950/25 px-4 py-2 backdrop-blur-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.42em] text-sky-100/80 md:text-[11px]">
-            SRI AUROBINDO MIRA UNIVERSAL SCHOOL
-          </span>
+            <p className="hero-alt-copy mx-auto mt-5 max-w-2xl text-sm leading-7 text-slate-100 md:text-base">
+              A vibrant campus where curiosity grows and futures begin.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="/admissions" className="hero-cta inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-900 transition duration-300 hover:bg-sky-100">
+                Apply now
+              </a>
+              <a href="/about" className="hero-cta inline-flex items-center justify-center rounded-full border border-white/20 bg-slate-950/25 px-6 py-3 text-sm font-medium text-white backdrop-blur-sm transition duration-300 hover:border-white/40 hover:bg-slate-950/40">
+                Explore campus
+              </a>
+            </div>
+          </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.2; transform: scale(0.85); }
-          50% { opacity: 1; transform: scale(1.5); }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 }

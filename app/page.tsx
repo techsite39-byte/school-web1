@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Trophy, Users } from "lucide-react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { CinematicLearningJourney } from "@/components/CinematicLearningJourney";
 import { HeroFeatureSection } from "@/components/HeroFeatureSection";
 import { SectionTitle } from "@/components/SectionTitle";
 import { SchoolOrbitAnimation } from "@/components/SchoolOrbitAnimation";
@@ -23,6 +24,8 @@ export default function HomePage() {
       <section className="relative isolate overflow-hidden">
         <SchoolOrbitAnimation hero />
       </section>
+
+      <CinematicLearningJourney />
 
       <HeroFeatureSection />
 
