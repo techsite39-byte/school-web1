@@ -215,7 +215,48 @@ export function SchoolOrbitAnimation({ hero = false }: { hero?: boolean }) {
       .to(student, {
         opacity: 0,
         duration: 0.4,
-      }, 5.1);
+      }, 5.1)
+      .to(words, {
+        opacity: 0,
+        y: -18,
+        filter: "blur(12px)",
+        stagger: 0.04,
+        duration: 0.7,
+        ease: "power2.in",
+      }, 5.3)
+      .to(altCopy, {
+        opacity: 0,
+        y: -14,
+        filter: "blur(12px)",
+        duration: 0.7,
+        ease: "power2.in",
+      }, 5.38)
+      .to(actions, {
+        opacity: 0,
+        y: -12,
+        filter: "blur(12px)",
+        stagger: 0.04,
+        duration: 0.7,
+        ease: "power2.in",
+      }, 5.46)
+      .to(schoolAlt, {
+        opacity: 0,
+        filter: "blur(18px)",
+        scale: 1.08,
+        duration: 0.8,
+        ease: "power2.in",
+      }, 5.55)
+      .to(school, {
+        opacity: 0,
+        filter: "blur(18px)",
+        scale: 1.08,
+        duration: 0.8,
+        ease: "power2.in",
+      }, 5.7)
+      .call(() => {
+        gsap.set(text, { opacity: 0, visibility: "hidden" });
+        gsap.set([words, altCopy, actions], { opacity: 0, y: 0, filter: "blur(0px)" });
+      }, undefined, 5.9);
 
     window.addEventListener("resize", updateEyeCamera);
 

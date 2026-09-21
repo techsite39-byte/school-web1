@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# School Website
 
-## Getting Started
+This project is split into two separate parts:
 
-First, run the development server:
+- Frontend: the Next.js website in the `app/` folder
+- Backend: the Express API in the `backend/` folder
+
+## Project structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+school1/
+├── app/                  # Frontend pages and layouts
+├── components/           # Reusable frontend components
+├── data/                 # Shared frontend data
+├── public/               # Frontend static assets
+├── backend/              # Express + TypeScript API
+│   ├── src/
+│   ├── package.json
+│   └── tsconfig.json
+├── package.json          # Frontend scripts and dependencies
+├── next.config.ts
+├── tsconfig.json
+├── eslint.config.mjs
+├── README.md
+└── .gitignore
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Frontend
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The frontend is the main site and is represented by the `app/` folder.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Install and run
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000 in the browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Production build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+## Backend
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The backend is a separate Express API in the `backend/` directory.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Install and run
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+The API will run on:
+
+```bash
+http://localhost:5000
+```
+
+### Production build
+
+```bash
+cd backend
+npm run build
+npm run start
+```
+
+## Environment variables
+
+Create a `.env` file in the `backend/` folder if needed for database and app configuration, for example:
+
+```bash
+PORT=5000
+CLIENT_URL=http://localhost:3000
+MONGODB_URI=your_mongodb_connection_string
+```
+
+## Notes
+
+- Frontend and backend are intentionally separated for independent development and deployment.
+- The frontend can be deployed on Vercel.
+- The backend can be deployed on a Node.js host or serverless platform such as Render, Railway, or Vercel with a separate server setup.

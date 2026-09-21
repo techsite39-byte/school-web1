@@ -16,27 +16,20 @@ const scenes = [
   },
   {
     number: "02",
-    title: "SCIENCE",
-    description: "Question. Experiment. Discover.",
-    image: "/science.png",
-    alt: "Student exploring science in a laboratory",
-  },
-  {
-    number: "03",
     title: "SPORTS",
     description: "Energy, teamwork and the spirit to go further.",
     image: "/sports.png",
     alt: "Students playing basketball in a sports hall",
   },
   {
-    number: "04",
+    number: "03",
     title: "CREATIVITY",
     description: "Imagine boldly. Create freely.",
     image: "/creativity.png",
     alt: "Students expressing creativity",
   },
   {
-    number: "05",
+    number: "04",
     title: "TECHNOLOGY",
     description: "Preparing young minds for a changing world.",
     image: "/technology.png",
@@ -48,50 +41,52 @@ export function CinematicLearningJourney() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const introRef = useRef<HTMLDivElement | null>(null);
-  const finalRef = useRef<HTMLDivElement | null>(null);
-  const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const copyRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const backgroundRef = useRef<HTMLImageElement | null>(null);
+  const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
     const stage = stageRef.current;
     const intro = introRef.current;
-    const finalMessage = finalRef.current;
-    const sceneElements = sceneRefs.current.filter(Boolean) as HTMLDivElement[];
-    const copyElements = copyRefs.current.filter(Boolean) as HTMLDivElement[];
+    const background = backgroundRef.current;
+    const panels = panelRefs.current.filter(Boolean) as HTMLDivElement[];
 
-    if (!section || !stage || !intro || !finalMessage || sceneElements.length !== scenes.length || copyElements.length !== scenes.length) return;
+    if (!section || !stage || !intro || !background || panels.length !== scenes.length) return;
 
     const context = gsap.context(() => {
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (reduceMotion) {
-        gsap.set(intro, { opacity: 1 });
-        gsap.set(sceneElements, { opacity: 0 });
-        gsap.set(sceneElements[0], { opacity: 1, clearProps: "transform,filter" });
-        gsap.set(copyElements, { opacity: 0 });
-        gsap.set(copyElements[0], { opacity: 1, clearProps: "transform" });
-        gsap.set(finalMessage, { opacity: 0 });
+        gsap.set(intro, { opacity: 1, y: 0 });
+        gsap.set(background, { scale: 1, y: 0, filter: "saturate(1) brightness(1)" });
+        gsap.set(panels, { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0, rotationY: 0, rotationX: 0, filter: "blur(0px)" });
         return;
       }
 
-      gsap.set(stage, { transformPerspective: 1400 });
+      gsap.set(stage, { perspective: 1800, transformStyle: "preserve-3d" });
+      gsap.set(background, {
+        scale: 1.12,
+        yPercent: 4,
+        filter: "saturate(0.9) brightness(0.68)",
+        transformOrigin: "center center",
+      });
       gsap.set(intro, { opacity: 1, y: 0 });
-      gsap.set(finalMessage, { opacity: 0, y: 30 });
 
-      sceneElements.forEach((scene, index) => {
-        const direction = index % 2 === 0 ? -1 : 1;
-        gsap.set(scene, {
-          opacity: index === 0 ? 0.9 : 0.24,
-          scale: index === 0 ? 0.78 : 0.58,
-          xPercent: direction * 8,
-          yPercent: index === 3 ? 4 : -3,
-          rotation: direction * -3,
-          filter: index === 0 ? "blur(3px)" : "blur(8px)",
-          transformOrigin: "center center",
-          force3D: true,
+      panels.forEach((panel, index) => {
+        const startOffset = (index - 1.5) * 18;
+        gsap.set(panel, {
+          opacity: 0,
+          x: startOffset,
+          y: 150 + index * 26,
+          scale: 0.72,
+          rotation: startOffset * 0.2,
+          rotationY: 18 - index * 5,
+          rotationX: 8,
+          filter: "blur(8px)",
+          zIndex: 10 + index,
+          transformPerspective: 1800,
+          transformStyle: "preserve-3d",
         });
-        gsap.set(copyElements[index], { opacity: 0, y: 34, filter: "blur(8px)" });
       });
 
       const timeline = gsap.timeline({
@@ -99,7 +94,7 @@ export function CinematicLearningJourney() {
           trigger: section,
           start: "top top",
           end: "bottom bottom",
-          scrub: 1.1,
+          scrub: 1.2,
           pin: stage,
           pinSpacing: false,
           anticipatePin: 1,
@@ -107,102 +102,91 @@ export function CinematicLearningJourney() {
         },
       });
 
-      timeline.to(intro, { opacity: 0, y: -30, duration: 0.55, ease: "power2.inOut" }, 0.1);
+      timeline.to(intro, { opacity: 0.15, y: -24, duration: 0.7, ease: "power2.inOut" }, 0.2);
+      timeline.to(background, { scale: 1.05, yPercent: 2, duration: 2.4, ease: "none" }, 0);
 
-      scenes.forEach((scene, index) => {
-        const image = sceneElements[index];
-        const copy = copyElements[index];
-        const start = 0.1 + index * 1.15;
-        const direction = index % 2 === 0 ? -1 : 1;
+      panels.forEach((panel, index) => {
+        const start = 0.25 + index * 0.9;
 
-        timeline.to(image, {
-          opacity: 1,
-          scale: 1,
-          xPercent: 0,
-          yPercent: 0,
-          rotation: 0,
-          filter: "blur(0px)",
-          duration: 0.9,
-          ease: "power3.out",
-        }, start);
-        timeline.to(copy, {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.55,
-          ease: "power3.out",
-        }, start + 0.48);
-        timeline.to(image, {
-          yPercent: index === 3 ? -2 : 2,
-          rotation: direction * 1,
-          duration: 0.45,
-          ease: "sine.inOut",
-        }, start + 1.05);
-
-        if (index < scenes.length - 1) {
-          timeline.to(image, {
-            opacity: 0.3,
-            scale: 0.58,
-            xPercent: direction * -18,
-            yPercent: 5,
-            rotation: direction * 2,
-            filter: "blur(8px)",
-            duration: 0.72,
-            ease: "power2.inOut",
+        timeline
+          .to(panel, {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0,
+            rotationY: 0,
+            rotationX: 0,
+            filter: "blur(0px)",
+            duration: 1.0,
+            ease: "power3.out",
+          }, start)
+          .to(panel, {
+            y: -10,
+            scale: 1.02,
+            duration: 0.4,
+            ease: "power1.out",
+          }, start + 0.7)
+          .to(panel, {
+            y: 0,
+            scale: 1,
+            duration: 0.55,
+            ease: "power2.out",
           }, start + 0.95);
-          timeline.to(copy, {
-            opacity: 0,
-            y: -26,
-            filter: "blur(7px)",
-            duration: 0.5,
-            ease: "power2.inOut",
-          }, start + 1.05);
-        }
       });
-
-      timeline.to(finalMessage, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-      }, 5.75);
     }, section);
 
     return () => context.revert();
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative h-[460vh] overflow-x-clip bg-[#050b14] text-white">
-      <div ref={stageRef} className="relative h-screen overflow-hidden bg-[radial-gradient(circle_at_50%_42%,rgba(44,83,113,0.35),transparent_34%),linear-gradient(180deg,#050b14_0%,#071522_52%,#03070d_100%)]">
-        <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(155,190,210,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(155,190,210,0.06)_1px,transparent_1px)] [background-size:72px_72px]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_18%,rgba(1,5,11,0.7)_82%)]" />
+    <section ref={sectionRef} className="relative h-[260vh] overflow-hidden bg-[#050b14] text-white">
+      <div ref={stageRef} className="sticky top-0 h-screen overflow-hidden bg-[#050b14]">
+        <img
+          ref={backgroundRef}
+          src="/school2.png"
+          alt="School building background"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          style={{ filter: "saturate(0.92) brightness(0.72) contrast(1.05)" }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(8,15,24,0.18),rgba(3,7,15,0.68)_72%,rgba(3,7,15,0.86))]" />
 
-        <div ref={introRef} className="absolute inset-0 z-20 flex items-center justify-center px-6 text-center">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.42em] text-cyan-200/75">A cinematic journey through school life</p>
+        <div className="absolute inset-0 z-20 flex items-center justify-center px-6 text-center">
+          <div ref={introRef}>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.42em] text-cyan-100/80">A cinematic journey through school life</p>
             <h2 className="mt-5 text-4xl font-semibold tracking-[-0.06em] text-white md:text-7xl">BEYOND THE CLASSROOM</h2>
-            <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-slate-300">Learning, discovering, creating and growing.</p>
+            <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-slate-200">Learning, discovering, creating and growing.</p>
           </div>
         </div>
 
-        {scenes.map((scene, index) => (
-          <div key={scene.title} ref={(element) => { sceneRefs.current[index] = element; }} className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-6">
-            <img src={scene.image} alt={scene.alt} loading={index === 0 ? "eager" : "lazy"} className="h-full w-full object-cover shadow-[0_35px_100px_rgba(0,0,0,0.42)] [will-change:transform,filter,opacity]" />
-          </div>
-        ))}
-
-        {scenes.map((scene, index) => (
-          <div key={`${scene.title}-copy`} ref={(element) => { copyRefs.current[index] = element; }} className="pointer-events-none absolute inset-x-0 bottom-[10vh] z-30 px-6 text-center md:bottom-[12vh]">
-            <p className="text-xs font-semibold tracking-[0.35em] text-cyan-200/80">{scene.number}</p>
-            <h3 className="mt-3 text-4xl font-semibold tracking-[-0.05em] md:text-7xl">{scene.title}</h3>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-300 md:text-lg">{scene.description}</p>
-          </div>
-        ))}
-
-        <div ref={finalRef} className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center px-6 text-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.38em] text-cyan-200/80">Our promise</p>
-            <h3 className="mt-5 text-5xl font-semibold tracking-[-0.06em] md:text-8xl">LEARNING TODAY.<br />LEADING TOMORROW.</h3>
+        <div className="absolute inset-0 z-30 flex items-center justify-center px-4 md:px-8">
+          <div className="flex w-full max-w-[1280px] items-center justify-center gap-3 md:gap-5 xl:gap-6">
+            {scenes.map((scene, index) => (
+              <div
+                key={scene.title}
+                ref={(element) => {
+                  panelRefs.current[index] = element;
+                }}
+                className="group relative h-[68vh] w-[22%] min-w-[180px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-[2px]"
+                style={{
+                  transformStyle: "preserve-3d",
+                  boxShadow: "0 30px 80px rgba(0,0,0,0.38)",
+                }}
+              >
+                <div className="absolute inset-0 rounded-[28px] bg-gradient-to-t from-[#020b14]/75 via-[#020b14]/15 to-transparent" />
+                <img
+                  src={scene.image}
+                  alt={scene.alt}
+                  className="h-full w-full object-cover"
+                  style={{ filter: "contrast(1.04) saturate(0.95) brightness(0.98)" }}
+                />
+                <div className="absolute inset-x-0 bottom-0 rounded-b-[28px] bg-gradient-to-t from-[#020b14]/90 via-[#020b14]/45 to-transparent p-4 md:p-5">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-cyan-100/80">{scene.number}</p>
+                  <h3 className="mt-3 text-xl font-semibold tracking-[-0.05em] text-white md:text-2xl">{scene.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-200/90 md:text-base">{scene.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
