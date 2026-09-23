@@ -150,6 +150,32 @@
 .activeCard { z-index: 5; opacity: 1; transform: translate3d(-50%, -50%, 100px) scale(.82); }
 .previousCard { z-index: 2; opacity: .55; filter: brightness(.72) blur(1px); transform: translate3d(calc(-50% - 390px), -50%, -100px) scale(.58); }
 .nextCard { z-index: 3; opacity: .62; filter: brightness(.75) blur(1px); transform: translate3d(calc(-50% + 390px), -50%, -100px) scale(.58); }
+.fourthCard { z-index: 1; opacity: .5; filter: brightness(.72) blur(1px); transform: translate3d(-50%, calc(-50% - 260px), -120px) scale(.72); }
+
+.phase-carousel .imageCard {
+  width: min(360px, 30vw);
+  height: min(360px, 30vw);
+  border-radius: 50%;
+}
+
+.phase-carousel .activeCard {
+  z-index: 20;
+  width: min(430px, 36vw);
+  height: min(430px, 36vw);
+  transform: translate3d(-50%, 42%, 100px) scale(1);
+}
+
+.phase-carousel .previousCard {
+  transform: translate3d(calc(-50% - min(360px, 28vw)), -50%, -100px) scale(.9);
+}
+
+.phase-carousel .nextCard {
+  transform: translate3d(calc(-50% + min(360px, 28vw)), -50%, -100px) scale(.9);
+}
+
+.phase-carousel .fourthCard {
+  transform: translate3d(-50%, calc(-50% - min(220px, 18vw)), -100px) scale(.82);
+}
 
 .phase-front .activeCard,
 .phase-frontHold .activeCard,
@@ -175,6 +201,15 @@
   opacity: .08;
   filter: blur(6px);
   transform: translate3d(-50%, -50%, -200px) scale(.45);
+}
+
+.phase-front .fourthCard,
+.phase-frontHold .fourthCard,
+.phase-frontAgain .fourthCard,
+.phase-frontAgainHold .fourthCard {
+  opacity: .08;
+  filter: blur(6px);
+  transform: translate3d(-50%, -50%, -200px) scale(.35);
 }
 
 .phase-returnWithText .activeCard,
@@ -217,6 +252,39 @@
 
 .phase-advance .previousCard { opacity: .2; transform: translate3d(calc(-50% - 500px), -50%, -200px) scale(.5); }
 .phase-advance .nextCard { z-index: 10; opacity: 1; filter: none; transform: translate3d(-50%, -50%, 150px) scale(.82); }
+.phase-advance .fourthCard { opacity: .62; filter: brightness(.72) blur(1px); transform: translate3d(-50%, calc(-50% - min(220px, 18vw)), -100px) scale(.82); }
+
+.phase-advance .imageCard {
+  width: min(360px, 30vw);
+  height: min(360px, 30vw);
+  border-radius: 50%;
+}
+
+.phase-advance .activeCard {
+  z-index: 5;
+  width: min(520px, 48vw);
+  height: min(610px, 67vh);
+  border-radius: 28px;
+  opacity: .32;
+  filter: brightness(.72);
+  transform: translate3d(-50%, 70%, -180px) scale(.72);
+}
+
+.phase-advance .previousCard {
+  opacity: .62;
+  filter: brightness(.72) blur(1px);
+  transform: translate3d(calc(-50% - min(360px, 28vw)), -50%, -100px) scale(.9);
+}
+
+.phase-advance .nextCard {
+  z-index: 10;
+  width: min(520px, 48vw);
+  height: min(610px, 67vh);
+  border-radius: 28px;
+  opacity: 1;
+  filter: none;
+  transform: translate3d(-50%, 42%, 120px) scale(.82);
+}
 
 .phase-complete .heroCopy { opacity: 0; }
 
@@ -242,6 +310,21 @@
   .phase-advance .activeCard { transform: translate3d(calc(-50% - 20px), 180%, -200px) scale(.45); }
   .phase-advance .previousCard { transform: translate3d(calc(-50% - 250px), -50%, -150px) scale(.42); }
   .phase-advance .nextCard { transform: translate3d(-50%, -50%, 120px) scale(.68); }
+  .phase-advance .imageCard { width: 180px; height: 180px; }
+  .phase-advance .activeCard { width: 230px; height: 230px; transform: translate3d(-50%, -50%, 80px) scale(1); }
+  .phase-advance .previousCard { opacity: .62; transform: translate3d(calc(-50% - 130px), -50%, -100px) scale(.82); }
+  .phase-advance .nextCard { opacity: .62; transform: translate3d(calc(-50% + 130px), -50%, -100px) scale(.82); }
+  .phase-advance .fourthCard { opacity: .62; transform: translate3d(-50%, calc(-50% - 120px), -100px) scale(.72); }
+  .phase-advance .activeCard,
+  .phase-advance .nextCard {
+    width: min(330px, 72vw);
+    height: min(470px, 65vh);
+    border-radius: 24px;
+    transform: translate3d(-50%, 42%, 80px) scale(.78);
+  }
+
+  .phase-advance .activeCard { opacity: .32; filter: brightness(.72); }
+  .phase-advance .nextCard { z-index: 10; opacity: 1; filter: none; }
   .heroCopy h1 { font-size: clamp(2.5rem, 12vw, 4.5rem); }
   .heroCopy p { font-size: .82rem; }
   .heroMeta { bottom: 5%; }
@@ -277,6 +360,29 @@
 }
 
 @media (max-width: 720px) {
+  .phase-carousel .imageCard {
+    width: 180px;
+    height: 180px;
+  }
+
+  .phase-carousel .activeCard {
+    width: 230px;
+    height: 230px;
+    transform: translate3d(-50%, 42%, 80px) scale(1);
+  }
+
+  .phase-carousel .previousCard {
+    transform: translate3d(calc(-50% - 130px), -50%, -100px) scale(.82);
+  }
+
+  .phase-carousel .nextCard {
+    transform: translate3d(calc(-50% + 130px), -50%, -100px) scale(.82);
+  }
+
+  .phase-carousel .fourthCard {
+    transform: translate3d(-50%, calc(-50% - 120px), -100px) scale(.72);
+  }
+
   .heroSequence.phase-returnWithText .activeCard,
   .heroSequence.phase-textHold .activeCard {
     width: min(330px, 72vw);

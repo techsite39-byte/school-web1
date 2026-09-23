@@ -45,10 +45,10 @@ export function SchoolHero() {
     const runAutomaticCycle = () => {
       setPhase("front");
       timersRef.current.push(window.setTimeout(() => setPhase("frontHold"), 1200));
-      timersRef.current.push(window.setTimeout(() => setPhase("returnWithText"), 3200));
-      timersRef.current.push(window.setTimeout(() => setPhase("textHold"), 4400));
-      timersRef.current.push(window.setTimeout(() => setPhase("frontAgain"), 5400));
-      timersRef.current.push(window.setTimeout(() => setPhase("frontAgainHold"), 6600));
+      timersRef.current.push(window.setTimeout(() => setPhase("returnWithText"), 3700));
+      timersRef.current.push(window.setTimeout(() => setPhase("textHold"), 4900));
+      timersRef.current.push(window.setTimeout(() => setPhase("frontAgain"), 5900));
+      timersRef.current.push(window.setTimeout(() => setPhase("frontAgainHold"), 7100));
       timersRef.current.push(window.setTimeout(() => {
         if (activeIndexRef.current === slides.length - 1) {
           completedRef.current = true;
@@ -66,9 +66,9 @@ export function SchoolHero() {
           setActiveIndex(nextIndex);
           nextIndexRef.current = null;
           setPhase("carousel");
-          timersRef.current.push(window.setTimeout(runAutomaticCycle, 1000));
+          timersRef.current.push(window.setTimeout(runAutomaticCycle, 2000));
         }, 1200));
-      }, 8600));
+      }, 9100));
     };
 
     const startAutomaticSequence = () => {
@@ -78,7 +78,7 @@ export function SchoolHero() {
       setIsLocked(true);
       clearTimers();
       setPhase("carousel");
-      timersRef.current.push(window.setTimeout(runAutomaticCycle, 1000));
+      timersRef.current.push(window.setTimeout(runAutomaticCycle, 2000));
     };
 
     const onWheel = (event: WheelEvent) => {
@@ -114,13 +114,15 @@ export function SchoolHero() {
   }, []);
 
   const renderedIndex = activeIndex;
-  const previousIndex = (renderedIndex - 1 + slides.length) % slides.length;
-  const nextIndex = (renderedIndex + 1) % slides.length;
+  const previousIndex = (renderedIndex + 1) % slides.length;
+  const nextIndex = (renderedIndex - 2 + slides.length) % slides.length;
+  const fourthIndex = (renderedIndex - 1 + slides.length) % slides.length;
   const activeSlide = slides[renderedIndex];
   const previousSlide = slides[previousIndex];
   const nextSlide = slides[nextIndex];
+  const fourthSlide = slides[fourthIndex];
   const displayedPhase = phase;
-  const textVisible = phase === "returnWithText" || phase === "textHold";
+  const textVisible = phase === "carousel" || phase === "returnWithText" || phase === "textHold";
   const fullImage = phase === "front" || phase === "frontHold" || phase === "frontAgain" || phase === "frontAgainHold";
 
   return (
@@ -156,6 +158,7 @@ export function SchoolHero() {
           <figure className={`${styles.imageCard} ${styles.previousCard}`}><img src={previousSlide.image} alt="" /></figure>
           <figure className={`${styles.imageCard} ${styles.activeCard}`}><img src={activeSlide.image} alt={activeSlide.title} /></figure>
           <figure className={`${styles.imageCard} ${styles.nextCard}`}><img src={nextSlide.image} alt="" /></figure>
+          <figure className={`${styles.imageCard} ${styles.fourthCard}`}><img src={fourthSlide.image} alt="" /></figure>
         </div>
         <div className={styles.heroMeta}>
           <span className={styles.counter}>{String(renderedIndex + 1).padStart(2, "0")} <i>/</i> {String(slides.length).padStart(2, "0")}</span>
