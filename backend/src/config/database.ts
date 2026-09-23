@@ -11,6 +11,6 @@ export const connectDatabase = async () => {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection failed:', error);
-    process.exit(1);
+    console.warn('Starting backend without MongoDB connection. Database-backed routes will be unavailable until MongoDB is running.');
   }
 };

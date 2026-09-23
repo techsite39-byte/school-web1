@@ -111,14 +111,13 @@ export function SchoolStoryCinematic() {
       master
         .to(background, { scale: 1.06, yPercent: 8, duration: 4.0, ease: "none" }, 0)
         .to(background, { scale: 1.06, yPercent: 8, duration: 5.0, ease: "none" }, 4.0)
-        .to(girlWrap, { opacity: 1, scale: 0.9, y: 40, rotateY: -10, rotateX: 2, filter: "blur(0px)", duration: 1.0, ease: "power3.out" }, 0.35)
-        .to(girlWrap, { scale: 1, y: 0, rotateY: 0, rotateX: 0, duration: 1.1, ease: "power2.out" }, 1.0)
-        .to(girlWrap, { scale: 1.14, rotateY: 18, rotateX: 2, duration: 1.0, ease: "power2.inOut" }, 1.8)
-        .to(girlWrap, { scale: 1.2, rotateY: 42, rotateX: 4, duration: 1.2, ease: "power2.inOut" }, 2.7)
-        .to(girlWrap, { scale: 1.26, rotateY: 72, rotateX: 6, duration: 1.25, ease: "power2.inOut" }, 3.7)
-        .to(girlWrap, { scale: 1.08, rotateY: 90, rotateX: 8, duration: 1.1, ease: "power2.inOut" }, 4.7)
-        .to(girlWrap, { opacity: 1, y: -18, scale: 1.18, rotateY: 102, rotateX: 10, duration: 1.5, ease: "power2.inOut" }, 5.6)
-        .to(girlWrap, { opacity: 0, y: -34, scale: 1.26, rotateY: 110, rotateX: 10, duration: 1.0, ease: "power2.in" }, 6.8);
+        .to(girlWrap, { opacity: 1, scale: 0.9, y: 40, rotateY: -10, rotateX: 2, filter: "blur(0px)", duration: 1.8, ease: "power3.out" }, 0.35)
+        .to(girlWrap, { scale: 1, y: 0, rotateY: 0, rotateX: 0, duration: 2.0, ease: "power2.out" }, 1.8)
+        .to(girlWrap, { scale: 1.08, rotateY: 16, rotateX: 2, duration: 2.2, ease: "power2.inOut" }, 3.3)
+        .to(girlWrap, { scale: 1.15, rotateY: 28, rotateX: 3, duration: 2.4, ease: "power2.inOut" }, 5.2)
+        .to(girlWrap, { scale: 1.2, rotateY: 42, rotateX: 4, duration: 2.8, ease: "power2.inOut" }, 7.2)
+        .to(girlWrap, { opacity: 1, y: -14, scale: 1.24, rotateY: 56, rotateX: 5, duration: 3.0, ease: "power2.inOut" }, 9.5)
+        .to(girlWrap, { opacity: 0, y: -30, scale: 1.26, rotateY: 68, rotateX: 5, duration: 2.0, ease: "power2.in" }, 12.1);
 
       leftPanels.forEach((panel, index) => {
         const start = 0.62 + index * 0.38;
@@ -139,7 +138,7 @@ export function SchoolStoryCinematic() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative h-[220vh] bg-[#040b16] text-white">
+    <section ref={sectionRef} className="relative h-screen bg-[#040b16] text-white">
       <div ref={viewportRef} className="sticky top-0 h-screen w-full overflow-hidden bg-[#040b16]">
         <div ref={backgroundRef} className="absolute inset-0 overflow-hidden">
           <img

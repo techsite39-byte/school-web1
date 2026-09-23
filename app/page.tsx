@@ -3,14 +3,14 @@
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ArrowRight, Trophy, Users } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, BookOpen, ChevronRight, Globe, Trophy, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { CinematicLearningJourney } from "@/components/CinematicLearningJourney";
 import { HeroFeatureSection } from "@/components/HeroFeatureSection";
-import { SchoolStoryCinematic } from "@/components/SchoolStoryCinematic";
+import { SchoolHero } from "../components/SchoolHero";
 import { SectionTitle } from "@/components/SectionTitle";
-import { SchoolOrbitAnimation } from "@/components/SchoolOrbitAnimation";
 import {
   academicStages,
   activities,
@@ -25,6 +25,146 @@ import {
 } from "@/data/site";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const schoolHeroSlides = [
+  {
+    id: "campus",
+    smallTitle: "OUR CAMPUS",
+    eyebrow: "Campus life",
+    title: "MAIN CAMPUS",
+    description:
+      "Discover our beautiful campus, modern classrooms and inspiring learning environment.",
+    image: "https://samcbse.org/images/bg/slider22.jpg",
+    previous: "SPORTS",
+    next: "CLASSROOMS",
+  },
+  {
+    id: "classroom",
+    smallTitle: "ADMINISTRATION",
+    eyebrow: "Smart learning",
+    title: "ADMIN BLOCK",
+    description:
+      "A welcoming administrative space designed to support students, teachers and parents throughout their school journey.",
+    image: "https://samcbse.org/images/gallery/11.jpg",
+    previous: "MAIN CAMPUS",
+    next: "SCIENCE BLOCK",
+  },
+  {
+    id: "sports",
+    smallTitle: "LEARNING",
+    eyebrow: "Wellness",
+    title: "CLASSROOMS",
+    description:
+      "Spacious and inspiring classrooms designed to create an interactive and focused learning experience for every student.",
+    image: "https://samcbse.org/images/sportsplex/sport4.jpg",
+    previous: "ADMIN BLOCK",
+    next: "LABORATORY",
+  },
+  {
+    id: "science",
+    smallTitle: "PRACTICAL LEARNING",
+    eyebrow: "Discovery",
+    title: "LABORATORY",
+    description:
+      "Modern practical learning spaces where students can explore concepts through experiments and hands-on activities.",
+    image: "https://samcbse.org/images/gallery/s3.jpg",
+    previous: "CLASSROOMS",
+    next: "SPORTS",
+  },
+  {
+    id: "culture",
+    smallTitle: "STUDENT LIFE",
+    eyebrow: "Community",
+    title: "SPORTS",
+    description:
+      "Dedicated sports spaces that encourage teamwork, discipline, confidence and an active student lifestyle.",
+    image: "https://samcbse.org/images/gallery/10.jpg",
+    previous: "LABORATORY",
+    next: "MAIN CAMPUS",
+  },
+];
+
+function PlanetHeroAnimation() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const getWrappedIndex = (index: number) => (index + schoolHeroSlides.length) % schoolHeroSlides.length;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => getWrappedIndex(prev + 1));
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const prevSlide = schoolHeroSlides[getWrappedIndex(activeIndex - 1)];
+  const activeSlide = schoolHeroSlides[activeIndex];
+  const nextSlide = schoolHeroSlides[getWrappedIndex(activeIndex + 1)];
+
+  return (
+    <section className="school-hero" id="schoolHero">
+      <div className="hero-shell">
+        <header className="hero-topbar">
+          <div className="school-brand-mark" aria-label="Sri Aurobindo Mira Universal School">
+            <span className="brand-badge">
+              <span className="brand-badge-inner" />
+            </span>
+            <div className="brand-copy">
+              <span className="brand-main">SRI AUROBINDO MIRA</span>
+              <span className="brand-sub">UNIVERSAL SCHOOL</span>
+            </div>
+          </div>
+
+          <div className="hero-top-actions">
+            <span className="phone-tag">☎ +91 9047077677</span>
+            <button type="button" className="apply-button">Apply Now</button>
+            <button type="button" className="menu-button" aria-label="Open navigation">
+              <span />
+              <span />
+              <span />
+            </button>
+          </div>
+        </header>
+
+        <div className="hero-stage">
+          <div className="hero-floating-copy">
+            <span className="spotlight-hover">Disc</span>
+            <span className="cta-pill">EXPLORE CAMPUS</span>
+            <span className="spotlight-hover">Home</span>
+          </div>
+
+          <div className="campus-orbit" aria-label="Campus carousel">
+            <div className="campus-background-circle" />
+
+            <div className="campus-image campus-image-left">
+              <img src={prevSlide.image} alt={prevSlide.title} />
+            </div>
+
+            <div className="campus-image campus-image-center">
+              <img src={activeSlide.image} alt={activeSlide.title} />
+            </div>
+
+            <div className="campus-image campus-image-right">
+              <img src={nextSlide.image} alt={nextSlide.title} />
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-footer-bar">
+          <div className="hero-indicator-wrap">
+            <span className="hero-indicator-letter">N</span>
+            <span className="hero-indicator-line" />
+          </div>
+
+          <div className="hero-index">
+            <span className="hero-index-current">{String(activeIndex + 1).padStart(2, "0")}</span>
+            <span className="hero-index-slash">/</span>
+            <span className="hero-index-total">{String(schoolHeroSlides.length).padStart(2, "0")}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null);
@@ -67,24 +207,55 @@ export default function HomePage() {
         return;
       }
 
-      gsap.set([titleLabel, titleHeading, ...titleLines], { opacity: 0, y: 18, filter: "blur(8px)" });
+      gsap.set([titleLabel, titleHeading, ...titleLines], { opacity: 1, y: 0, filter: "blur(0px)" });
       gsap.set(revealBlocks, {
-        opacity: 0,
-        y: 22,
-        x: 10,
-        filter: "blur(8px)",
+        opacity: 1,
+        y: 0,
+        x: 0,
+        filter: "blur(0px)",
         willChange: "transform, opacity, filter",
       });
       gsap.set(imageWrap, {
         x: 0,
         y: 0,
-        scale: 1,
-        rotation: 0,
+        scale: 1.12,
+        rotationX: 0,
+        rotationY: 0,
+        z: 0,
         opacity: 1,
+        transformPerspective: 1600,
         transformOrigin: "center center",
       });
 
-      const finalImageX = window.innerWidth < 768 ? -110 : -220;
+      const revealWordSets = revealBlocks.map((block) => {
+        const words = block.textContent?.trim().split(/\s+/) ?? [];
+        if (!words.length) return [] as HTMLElement[];
+
+        const fragment = document.createDocumentFragment();
+        const wordEls: HTMLElement[] = [];
+
+        words.forEach((word, index) => {
+          const span = document.createElement("span");
+          span.className = "reveal-word inline-block";
+          span.textContent = `${word} `;
+          span.style.opacity = "0";
+          span.style.filter = "blur(8px)";
+          span.style.transform = "translate3d(0, 18px, 0)";
+          span.style.display = "inline-block";
+          wordEls.push(span);
+          fragment.appendChild(span);
+        });
+
+        block.textContent = "";
+        block.appendChild(fragment);
+        return wordEls;
+      });
+
+      gsap.set(revealWordSets.flat(), {
+        opacity: 0,
+        y: 18,
+        filter: "blur(8px)",
+      });
 
       const aboutTimeline = gsap.timeline({
         scrollTrigger: {
@@ -102,58 +273,59 @@ export default function HomePage() {
         .to(imageWrap, {
           x: 0,
           y: 0,
-          scale: 1,
-          rotation: 0,
-          duration: 0.8,
+          z: 90,
+          rotateX: 4,
+          rotateY: -8,
+          scale: 1.18,
+          duration: 0.9,
           ease: "power2.out",
         }, 0)
         .to(imageWrap, {
-          x: 0,
-          y: 0,
-          scale: 0.9,
-          rotation: 0,
-          duration: 0.9,
-          ease: "power2.inOut",
-        }, 0.25)
-        .to(imageWrap, {
-          x: finalImageX,
-          y: 0,
-          scale: 0.78,
-          rotation: 0,
-          duration: 1.0,
+          x: -26,
+          y: -6,
+          z: 120,
+          rotateX: -4,
+          rotateY: 8,
+          scale: 0.96,
+          duration: 1.2,
           ease: "power2.inOut",
         }, 0.65)
-        .to(titleLabel, {
+        .to(imageWrap, {
+          x: -120,
+          y: 8,
+          z: -40,
+          rotateX: 5,
+          rotateY: -10,
+          scale: 0.86,
+          duration: 1.4,
+          ease: "power2.inOut",
+        }, 1.5)
+        .to(imageWrap, {
+          x: -90,
+          y: 0,
+          z: 0,
+          rotateX: 0,
+          rotateY: 0,
+          scale: 0.9,
+          duration: 1.1,
+          ease: "power2.out",
+        }, 2.3)
+        .to(revealWordSets[0], {
           opacity: 1,
           y: 0,
           filter: "blur(0px)",
-          duration: 0.7,
+          stagger: 0.06,
+          duration: 0.8,
           ease: "power2.out",
-        }, 1.0)
-        .to(titleLines, {
+        }, 2.1)
+        .to(revealWordSets[1], {
           opacity: 1,
           y: 0,
           filter: "blur(0px)",
-          duration: 0.7,
-          stagger: 0.15,
+          stagger: 0.06,
+          duration: 0.8,
           ease: "power2.out",
-        }, 1.25)
-        .to(revealBlocks[0], {
-          opacity: 1,
-          y: 0,
-          x: 0,
-          filter: "blur(0px)",
-          duration: 0.65,
-          ease: "power2.out",
-        }, 2.0)
-        .to(revealBlocks[1], {
-          opacity: 1,
-          y: 0,
-          x: 0,
-          filter: "blur(0px)",
-          duration: 0.65,
-          ease: "power2.out",
-        }, 2.5);
+        }, 2.8);
 
       ScrollTrigger.refresh();
     }, section);
@@ -269,11 +441,7 @@ export default function HomePage() {
   }, []);
   return (
     <main className="pt-0">
-      <section className="relative isolate overflow-hidden">
-        <SchoolOrbitAnimation hero />
-      </section>
-
-      <SchoolStoryCinematic />
+      <SchoolHero />
 
       <CinematicLearningJourney />
 
@@ -316,30 +484,6 @@ export default function HomePage() {
               <p className="mt-3 text-sm uppercase tracking-[0.16em] text-slate-500">{stat.label}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
-        <SectionTitle eyebrow="Our journey" title="From foundation to future-ready learning." />
-        <div className="mt-12 relative">
-          <div className="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-slate-300 md:block" />
-          <div className="space-y-10">
-            {schoolJourney.map((item, index) => (
-              <div key={item.year} className="grid gap-6 md:grid-cols-2 md:items-center">
-                <div className={index % 2 === 0 ? "md:pr-12 md:text-right" : "md:col-start-2 md:pl-12"}>
-                  <div className="inline-flex items-center gap-3">
-                    <span className="hidden h-4 w-4 rounded-full bg-[#0c3b59] md:block" />
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">{item.year}</p>
-                  </div>
-                </div>
-                <div className={index % 2 === 0 ? "md:col-start-2 md:pl-12" : "md:col-start-1 md:pr-12 md:text-right"}>
-                  <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p className="text-lg leading-8 text-slate-700">{item.text}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

@@ -34,7 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[#f4f1ea] text-slate-900">
-        <div className="relative isolate min-h-screen overflow-hidden">
+        <div className="relative isolate min-h-screen">
           <Navbar />
           {children}
           <footer className="border-t border-slate-200 bg-[#0d1b2a] text-slate-100">

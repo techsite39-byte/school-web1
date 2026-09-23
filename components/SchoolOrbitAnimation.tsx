@@ -140,6 +140,7 @@ export function SchoolOrbitAnimation({ hero = false }: { hero?: boolean }) {
         end: "bottom bottom",
         scrub: 1.2,
         pin: true,
+        pinSpacing: false,
         invalidateOnRefresh: true,
         anticipatePin: 1,
       },
@@ -270,7 +271,7 @@ export function SchoolOrbitAnimation({ hero = false }: { hero?: boolean }) {
   return (
     <section
       ref={sectionRef}
-      className={hero ? "relative h-[220vh] w-full overflow-hidden bg-[#040b16]" : "relative h-[540px] w-full overflow-hidden bg-[#040b16]"}
+      className={hero ? "relative h-[180vh] w-full overflow-hidden bg-[#040b16]" : "relative h-[540px] w-full overflow-hidden bg-[#040b16]"}
       aria-label="Cinematic school hero"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-[#040b16]">
