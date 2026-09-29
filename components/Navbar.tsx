@@ -19,8 +19,8 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 mx-auto max-w-[1600px] px-4 pt-4 transition-all duration-500 md:px-8">
-      <div className={`relative flex items-center justify-between rounded-[20px] border border-[#caa866]/35 bg-[#fffdf7]/95 px-4 shadow-[0_12px_35px_rgba(55,39,22,0.1)] backdrop-blur-xl transition-all duration-500 md:px-6 ${isScrolled ? "min-h-[68px] shadow-[0_16px_42px_rgba(55,39,22,0.16)]" : "min-h-[82px]"}`}>
+    <header className="fixed inset-x-0 top-0 z-[60] px-4 pt-4 transition-all duration-500 md:px-8">
+      <div className={`relative mx-auto flex max-w-[1600px] items-center justify-between rounded-[20px] border border-[#caa866]/35 bg-[#fffdf7]/80 px-4 shadow-[0_12px_35px_rgba(55,39,22,0.1)] backdrop-blur-xl transition-all duration-500 md:px-6 ${isScrolled ? "min-h-[68px] shadow-[0_16px_42px_rgba(55,39,22,0.16)]" : "min-h-[82px]"}`}>
         <Link href="/" className="group flex shrink-0 items-center text-slate-900" aria-label="Sri Aurobindo Mira Universal School home">
           <img src="/logo.svg" alt="Sri Aurobindo Mira Universal School logo" className="h-14 w-auto transition-transform duration-300 group-hover:scale-[1.03]" />
         </Link>

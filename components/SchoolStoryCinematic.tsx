@@ -2,7 +2,7 @@
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,14 +42,34 @@ const rightInfo = [
   },
 ];
 
+const heroSlides = [
+  { image: "/school2.png", title: "The #1", subtitle: "School for\nperformers" },
+  { image: "/academics.png", title: "The #1", subtitle: "School for\nlearners" },
+  { image: "/sports.png", title: "The #1", subtitle: "School for\nathletes" },
+  { image: "/science.png", title: "The #1", subtitle: "School for\ninnovators" },
+  { image: "/creativity.png", title: "The #1", subtitle: "School for\ncreators" },
+];
+
 export function SchoolStoryCinematic() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const backgroundRef = useRef<HTMLDivElement | null>(null);
   const girlWrapRef = useRef<HTMLDivElement | null>(null);
   const girlImageRef = useRef<HTMLImageElement | null>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const badgeRef = useRef<HTMLDivElement | null>(null);
   const leftRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rightRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveSlideIndex((current) => (current + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -137,81 +157,151 @@ export function SchoolStoryCinematic() {
     return () => context.revert();
   }, []);
 
+  useEffect(() => {
+    const imageNodes = slideRefs.current.filter(Boolean) as HTMLDivElement[];
+    const copyNode = contentRef.current;
+    const badgeNode = badgeRef.current;
+
+    if (imageNodes.length === 0) return;
+
+    const activeImage = imageNodes[activeSlideIndex];
+
+    imageNodes.forEach((node, index) => {
+      const isActive = index === activeSlideIndex;
+      gsap.set(node, {
+        x: isActive ? 140 : index < activeSlideIndex ? -140 : 160,
+        y: isActive ? 18 : 28,
+        scale: isActive ? 1.12 : 1.18,
+        opacity: isActive ? 1 : 0,
+        filter: isActive ? "blur(0px)" : "blur(10px)",
+        transformOrigin: "center center",
+      });
+    });
+
+    if (activeImage) {
+      gsap.to(activeImage, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        opacity: 1,
+        duration: 1.35,
+        ease: "power3.inOut",
+      });
+    }
+
+    imageNodes.forEach((node, index) => {
+      if (index === activeSlideIndex) return;
+      gsap.to(node, {
+        x: index < activeSlideIndex ? -180 : 180,
+        y: 32,
+        scale: 1.18,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power3.inOut",
+        filter: "blur(12px)",
+      });
+    });
+
+    if (copyNode) {
+      gsap.fromTo(
+        copyNode,
+        { x: 34, y: 28, opacity: 0, filter: "blur(10px)" },
+        { x: 0, y: 0, opacity: 1, filter: "blur(0px)", duration: 1.1, ease: "power3.inOut" }
+      );
+    }
+
+    if (badgeNode) {
+      gsap.fromTo(
+        badgeNode,
+        { x: 18, y: 18, opacity: 0 },
+        { x: 0, y: 0, opacity: 1, duration: 1.1, ease: "power3.inOut" }
+      );
+    }
+  }, [activeSlideIndex]);
+
+  const scrollToAbout = () => {
+    document.getElementById("about-school")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <section ref={sectionRef} className="relative h-screen bg-[#040b16] text-white">
-      <div ref={viewportRef} className="sticky top-0 h-screen w-full overflow-hidden bg-[#040b16]">
+    <section ref={sectionRef} className="relative h-screen min-h-[100vh] w-full overflow-hidden bg-[#040b16] text-white">
+      <div ref={viewportRef} className="sticky top-0 h-[100vh] min-h-[100vh] w-full overflow-hidden bg-[#040b16] sm:h-[100svh] sm:min-h-[100svh]">
         <div ref={backgroundRef} className="absolute inset-0 overflow-hidden">
-          <img
-            src="/school2.png"
-            alt="School building"
-            className="h-full w-full object-cover object-center"
-            style={{ filter: "saturate(0.9) brightness(0.72) contrast(1.06)" }}
-          />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(30,64,175,0.12),transparent_32%),linear-gradient(180deg,rgba(2,6,23,0.15),rgba(2,6,23,0.82))]" />
+          {heroSlides.map((slide, index) => (
+            <div
+              key={slide.image}
+              ref={(element) => {
+                slideRefs.current[index] = element;
+              }}
+              className="absolute inset-0"
+              style={{
+                opacity: index === activeSlideIndex ? 1 : 0,
+                willChange: "transform, opacity, filter",
+              }}
+            >
+              <img
+                src={slide.image}
+                alt="School background"
+                className="h-full w-full object-cover object-center"
+                style={{ filter: "none" }}
+              />
+            </div>
+          ))}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.45))]" />
         </div>
 
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(1,5,15,0.18),rgba(2,6,23,0.78))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(24,190,188,0.18),transparent_38%),linear-gradient(180deg,rgba(1,5,15,0.18),rgba(2,6,23,0.68))]" />
 
-        <div className="absolute inset-0 z-10 flex items-center justify-center [perspective:1800px]">
-          <div ref={girlWrapRef} className="relative flex h-[72vh] w-[clamp(240px,30vw,460px)] items-center justify-center [transform-style:preserve-3d]">
-            <div className="absolute inset-6 rounded-[42%] bg-[radial-gradient(circle,_rgba(125,211,252,0.18),transparent_68%)] blur-3xl" />
-            <img
-              ref={girlImageRef}
-              src="/graduate-girl.png"
-              alt="Graduate girl"
-              className="relative h-full w-full object-contain object-center opacity-100 [transform:translateZ(60px)] drop-shadow-[0_35px_80px_rgba(0,0,0,0.46)]"
-              style={{ filter: "none", opacity: 1, visibility: "visible" }}
-            />
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute inset-0 z-20">
-          <div className="absolute inset-y-0 left-0 hidden w-[28%] items-center justify-center md:flex">
-            <div className="relative h-full w-full">
-              {leftInfo.map((item, index) => (
-                <div
-                  key={item.title}
-                  ref={(element) => {
-                    leftRefs.current[index] = element;
-                  }}
-                  className={`absolute max-w-[260px] rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 shadow-[0_18px_40px_rgba(2,6,23,0.3)] backdrop-blur-md ${item.className}`}
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.38em] text-sky-100/80">{item.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-100 md:text-base">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="absolute inset-y-0 right-0 hidden w-[28%] items-center justify-center md:flex">
-            <div className="relative h-full w-full">
-              {rightInfo.map((item, index) => (
-                <div
-                  key={item.title}
-                  ref={(element) => {
-                    rightRefs.current[index] = element;
-                  }}
-                  className={`absolute max-w-[260px] rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 shadow-[0_18px_40px_rgba(2,6,23,0.3)] backdrop-blur-md ${item.className}`}
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.38em] text-sky-100/80">{item.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-100 md:text-base">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="absolute inset-x-4 bottom-8 z-30 flex flex-col gap-3 md:hidden">
-            {[...leftInfo, ...rightInfo].map((item, index) => (
-              <div
-                key={`${item.title}-${index}`}
-                className="rounded-2xl border border-white/10 bg-slate-950/30 px-3 py-2 shadow-[0_18px_40px_rgba(2,6,23,0.3)] backdrop-blur-md"
-              >
-                <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-sky-100/80">{item.title}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-100">{item.body}</p>
+        <div ref={contentRef} className="relative z-20 flex h-full w-full items-end justify-start px-4 pb-[7vh] pt-28 md:px-8 lg:px-16" style={{ willChange: "transform, opacity, filter" }}>
+          <div className="max-w-[640px] text-white">
+            <div ref={badgeRef} className="mb-5 flex items-center gap-3" style={{ willChange: "transform, opacity" }}>
+              <div className="flex -space-x-3">
+                <img src="/sschool-boy.png" alt="Student" className="h-14 w-14 rounded-full border-2 border-white/70 object-cover shadow-lg md:h-16 md:w-16" />
+                <img src="/graduate-girl.png" alt="Student" className="h-14 w-14 rounded-full border-2 border-white/70 object-cover shadow-lg md:h-16 md:w-16" />
               </div>
-            ))}
+            </div>
+
+            <h1 className="text-[clamp(3.25rem,6vw,8rem)] font-black leading-[0.82] tracking-[-0.07em] text-white">
+              {heroSlides[activeSlideIndex].title.split(" ").map((part, index) => (
+                <span key={index} className={part === "#1" ? "text-[#f5b56b]" : ""}>
+                  {index > 0 ? " " : ""}
+                  {part}
+                  {index === 0 ? " " : ""}
+                </span>
+              ))}
+              <br />
+              {heroSlides[activeSlideIndex].subtitle.split("\n").map((line, index) => (
+                <span key={index}>
+                  {line}
+                  {index < heroSlides[activeSlideIndex].subtitle.split("\n").length - 1 ? <><br /></> : null}
+                </span>
+              ))}
+            </h1>
+
+            <div className="mt-6 flex max-w-[460px] items-center gap-4 rounded-[22px] border border-white/20 bg-white/5 p-3 backdrop-blur-sm shadow-[0_20px_50px_rgba(2,6,23,0.2)] md:gap-5">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d7b779] bg-[#0d1a2b] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+                <img src="/school.png" alt="Award badge" className="h-full w-full object-cover" />
+              </div>
+              <p className="text-[0.72rem] font-semibold uppercase leading-[1.5] tracking-[0.18em] text-[#f4f7fb] md:text-[0.78rem]">
+                Awarded 5th in school that creates design thinking leaders
+              </p>
+            </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={scrollToAbout}
+          className="group absolute bottom-[42px] left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 text-white/90 transition-transform duration-300 hover:scale-[1.02]"
+          aria-label="Scroll to about section"
+        >
+          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.38em] text-slate-100/85">SCROLL</span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white/8 text-xl shadow-[0_0_24px_rgba(125,211,252,0.45)] backdrop-blur-sm transition-all duration-300 group-hover:bg-white/12 group-hover:shadow-[0_0_32px_rgba(125,211,252,0.65)]">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 animate-bounce">
+              <path d="M12 4v12m0 0 4-4m-4 4-4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </span>
+        </button>
       </div>
     </section>
   );

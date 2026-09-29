@@ -15,6 +15,21 @@
   color: #f9f5ed;
 }
 
+@media (max-width: 700px) {
+  .heroSequence {
+    height: 100svh !important;
+    min-height: 100svh !important;
+    max-height: 100svh !important;
+    overflow: hidden;
+  }
+
+  .heroViewport {
+    height: 100svh !important;
+    min-height: 100svh !important;
+    max-height: 100svh !important;
+  }
+}
+
 .heroAtmosphere {
   position: absolute;
   inset: 0;
@@ -81,13 +96,13 @@
 
 .heroCopy {
   position: absolute;
-  top: 17%;
+  top: 12%;
   left: 50%;
   z-index: 10;
   width: min(560px, 90vw);
   opacity: 0;
   text-align: center;
-  transform: translate(-50%, 35px);
+  transform: translate(-50%, 18px);
   filter: blur(10px);
   pointer-events: none;
   transition: opacity 700ms cubic-bezier(.22,.61,.36,1), transform 700ms cubic-bezier(.22,.61,.36,1), filter 700ms cubic-bezier(.22,.61,.36,1), left 1000ms cubic-bezier(.22,.61,.36,1), top 1000ms cubic-bezier(.22,.61,.36,1), width 1000ms cubic-bezier(.22,.61,.36,1);
@@ -115,7 +130,7 @@
 
 .carousel {
   position: absolute;
-  top: 57%;
+  top: 54%;
   left: 50%;
   width: min(1150px, 100vw);
   height: 500px;
@@ -162,7 +177,7 @@
   z-index: 20;
   width: min(430px, 36vw);
   height: min(430px, 36vw);
-  transform: translate3d(-50%, 42%, 100px) scale(1);
+  transform: translate3d(-50%, 26%, 100px) scale(1);
 }
 
 .phase-carousel .previousCard {
@@ -229,7 +244,7 @@
 
 .phase-returnWithText .heroCopy,
 .phase-textHold .heroCopy {
-  top: 50%;
+  top: 42%;
   left: 17%;
   width: min(430px, 38vw);
   opacity: 1;

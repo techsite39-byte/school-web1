@@ -4,12 +4,11 @@ import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BookOpen, ChevronRight, Globe, Trophy, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, ChevronRight, Globe, Trophy, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
-import { CinematicLearningJourney } from "@/components/CinematicLearningJourney";
-import { HeroFeatureSection } from "@/components/HeroFeatureSection";
-import { SchoolHero } from "../components/SchoolHero";
+import { CinematicScrollReveal } from "@/components/CinematicScrollReveal";
+import { SchoolStoryCinematic } from "@/components/SchoolStoryCinematic";
 import { SectionTitle } from "@/components/SectionTitle";
 import {
   academicStages,
@@ -166,27 +165,332 @@ function PlanetHeroAnimation() {
   );
 }
 
+const storyGalleryItems = [
+  {
+    image: "/school.png",
+    title: "Campus Life",
+    description: "A vibrant learning environment shaped around creativity and confidence.",
+  },
+  {
+    image: "/building1.png",
+    title: "Spaces That Inspire",
+    description: "Purpose-built classrooms and shared spaces that make discovery feel natural.",
+  },
+  {
+    image: "/technology.png",
+    title: "New Learning",
+    description: "Smart teaching methods that connect curiosity with practical understanding.",
+  },
+  {
+    image: "/creativity.png",
+    title: "Creative Growth",
+    description: "Students explore ideas, art, and expression in ways that build character.",
+  },
+  {
+    image: "/sports.png",
+    title: "Active Futures",
+    description: "Wellness, teamwork, and confidence grow through movement and play.",
+  },
+];
+
+function OceanStoryGallerySection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const stickyRef = useRef<HTMLDivElement | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [visibleStep, setVisibleStep] = useState(0);
+  const visibleStepRef = useRef(0);
+  const galleryCompleteRef = useRef(false);
+  const wheelGestureRef = useRef(false);
+  const wheelResetRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchHandledRef = useRef(false);
+
+  const hiddenY = "110vh";
+
+  const handleStepChange = (direction: number) => {
+    const nextStep = Math.min(storyGalleryItems.length, Math.max(0, visibleStepRef.current + direction));
+    if (nextStep === visibleStepRef.current) return false;
+
+    visibleStepRef.current = nextStep;
+    setVisibleStep(nextStep);
+
+    if (nextStep === storyGalleryItems.length) {
+      window.setTimeout(() => {
+        galleryCompleteRef.current = true;
+      }, 750);
+    }
+
+    return true;
+  };
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const sticky = stickyRef.current;
+
+    if (!section || !sticky) return;
+
+    ScrollTrigger.getAll().forEach((trigger) => {
+      if (trigger.vars.trigger === section || trigger.vars.pin === sticky) trigger.kill();
+    });
+
+    let galleryTrigger: ScrollTrigger | null = null;
+    let galleryInputActive = false;
+
+    const attachGalleryInput = () => {
+      if (galleryInputActive || galleryCompleteRef.current) return;
+      galleryInputActive = true;
+      window.addEventListener("wheel", onWheel, { passive: false });
+      window.addEventListener("touchstart", onTouchStart, { passive: true });
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+    };
+
+    const detachGalleryInput = () => {
+      if (!galleryInputActive) return;
+      galleryInputActive = false;
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+
+    const releaseGallery = () => {
+      detachGalleryInput();
+      if (galleryTrigger) {
+        galleryTrigger.kill(true);
+        galleryTrigger = null;
+      }
+
+      section.style.height = "100vh";
+      ScrollTrigger.refresh();
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (galleryCompleteRef.current) {
+        releaseGallery();
+        return;
+      }
+      if (event.deltaY < 0 && visibleStepRef.current === 0) {
+        detachGalleryInput();
+        return;
+      }
+
+      event.preventDefault();
+      if (wheelResetRef.current !== null) window.clearTimeout(wheelResetRef.current);
+      wheelResetRef.current = window.setTimeout(() => {
+        wheelGestureRef.current = false;
+      }, 180);
+
+      if (wheelGestureRef.current) return;
+      wheelGestureRef.current = true;
+
+      if (event.deltaY > 0) {
+        handleStepChange(1);
+      } else if (event.deltaY < 0) {
+        handleStepChange(-1);
+      }
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      touchStartYRef.current = event.touches[0]?.clientY ?? null;
+      touchHandledRef.current = false;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length === 0) return;
+      if (galleryCompleteRef.current) {
+        releaseGallery();
+        return;
+      }
+      if (touchStartYRef.current === null || touchHandledRef.current) return;
+
+      const movement = touchStartYRef.current - event.touches[0].clientY;
+      if (Math.abs(movement) < 24) return;
+      if (movement < 0 && visibleStepRef.current === 0) {
+        detachGalleryInput();
+        return;
+      }
+
+      event.preventDefault();
+      touchHandledRef.current = true;
+      handleStepChange(movement > 0 ? 1 : -1);
+    };
+
+    const context = gsap.context(() => {
+      galleryTrigger = ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: "+=2000%",
+        pin: sticky,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onEnter: attachGalleryInput,
+        onEnterBack: attachGalleryInput,
+        onLeave: detachGalleryInput,
+        onLeaveBack: detachGalleryInput,
+      });
+    }, section);
+
+    return () => {
+      context.revert();
+      detachGalleryInput();
+      if (wheelResetRef.current !== null) window.clearTimeout(wheelResetRef.current);
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars.trigger === section || trigger.vars.pin === sticky) trigger.kill();
+      });
+    };
+  }, []);
+
+  const galleryPanels = storyGalleryItems.map((item, index) => {
+    const isExpanded = expandedIndex === index;
+    const isDimmed = expandedIndex !== null && !isExpanded;
+    const width = expandedIndex === null ? 160 : isExpanded ? 480 : 92;
+
+    return {
+      ...item,
+      index,
+      isExpanded,
+      isDimmed,
+      width,
+      shouldReveal: index < visibleStep,
+    };
+  });
+
+  return (
+    <section ref={sectionRef} className="ocean-story-section" aria-label="Cinematic gallery section">
+      <div ref={stickyRef} className="ocean-story-sticky">
+        <div className="ocean-story-surface" aria-hidden="true" />
+
+        <div className="ocean-story-panels" role="list" aria-label="Gallery panels">
+          {galleryPanels.map((item, index) => {
+            const isExpanded = item.isExpanded;
+            const isDimmed = item.isDimmed;
+            const width = item.width;
+            const panelY = item.shouldReveal ? "0px" : hiddenY;
+
+            return (
+              <button
+                key={item.title}
+                type="button"
+                className={`ocean-story-panel ${isExpanded ? "is-expanded" : ""} ${isDimmed ? "is-collapsed" : ""}`}
+                style={{
+                  width,
+                  flexBasis: width,
+                  transform: `translate3d(0, ${panelY}, 0)`,
+                  transition: "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
+                }}
+                onMouseEnter={() => setExpandedIndex(index)}
+                onMouseLeave={() => setExpandedIndex(null)}
+                onFocus={() => setExpandedIndex(index)}
+                onBlur={() => setExpandedIndex(null)}
+                onClick={() => setExpandedIndex((current) => (current === index ? null : index))}
+                aria-label={`Expand ${item.title}`}
+              >
+                <img src={item.image} alt={item.title} />
+                <div className="ocean-story-panel-copy" aria-live="polite">
+                  <p className="ocean-story-panel-kicker">School story</p>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </div>
+                <span className="ocean-story-panel-arrow" aria-hidden="true">
+                  <ArrowUpRight size={18} strokeWidth={2.2} />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null);
   const aboutViewportRef = useRef<HTMLDivElement | null>(null);
+  const aboutRevealRef = useRef<HTMLDivElement | null>(null);
   const aboutTitleRef = useRef<HTMLDivElement | null>(null);
   const aboutImageWrapRef = useRef<HTMLDivElement | null>(null);
   const aboutTextRef = useRef<HTMLDivElement | null>(null);
   const aboutRevealRefs = useRef<(HTMLElement | null)[]>([]);
   const learningSectionRef = useRef<HTMLElement | null>(null);
   const learningViewportRef = useRef<HTMLDivElement | null>(null);
+    const galleryCompleteRef = useRef(false);
   const learningCardRefs = useRef<(HTMLElement | null)[]>([]);
   const learningDetailRefs = useRef<(HTMLElement | null)[]>([]);
+  const facilitiesViewportRef = useRef<HTMLDivElement | null>(null);
+  const facilitySceneRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const viewport = facilitiesViewportRef.current;
+    const scenes = facilitySceneRefs.current.filter(Boolean) as HTMLDivElement[];
+
+    if (!viewport || scenes.length !== facilities.length) return;
+
+    ScrollTrigger.getAll().forEach((trigger) => {
+      if (trigger.vars.trigger === viewport || trigger.vars.pin === viewport) trigger.kill();
+    });
+
+    const context = gsap.context(() => {
+      gsap.set(scenes[0], { yPercent: 0, zIndex: 1 });
+      gsap.set(scenes.slice(1), { yPercent: 100 });
+
+      scenes.forEach((scene, index) => {
+        scene.style.zIndex = String(index + 1);
+      });
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: viewport,
+          start: "top top",
+          end: "+=150%",
+          scrub: true,
+          pin: viewport,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      scenes.slice(1).forEach((scene, index) => {
+        const transitionStart = index;
+        timeline.to(scenes[index], { yPercent: -100, ease: "none" }, transitionStart);
+        timeline.to(scene, { yPercent: 0, ease: "none" }, transitionStart);
+      });
+    }, viewport);
+
+    const images = Array.from(viewport.querySelectorAll("img"));
+    const refreshAfterImageLoad = () => ScrollTrigger.refresh();
+
+    images.forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener("load", refreshAfterImageLoad);
+        image.addEventListener("error", refreshAfterImageLoad);
+      }
+    });
+
+    ScrollTrigger.refresh();
+
+    return () => {
+      context.revert();
+      images.forEach((image) => {
+        image.removeEventListener("load", refreshAfterImageLoad);
+        image.removeEventListener("error", refreshAfterImageLoad);
+      });
+      ScrollTrigger.getAll().forEach((trigger) => {
+        if (trigger.vars.trigger === viewport || trigger.vars.pin === viewport) trigger.kill();
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const section = aboutSectionRef.current;
     const viewport = aboutViewportRef.current;
+    const reveal = aboutRevealRef.current;
     const imageWrap = aboutImageWrapRef.current;
     const title = aboutTitleRef.current;
     const text = aboutTextRef.current;
     const revealBlocks = aboutRevealRefs.current.filter(Boolean) as HTMLElement[];
 
-    if (!section || !viewport || !imageWrap || !title || !text || revealBlocks.length === 0) return;
+    if (!section || !viewport || !reveal || !imageWrap || !title || !text || revealBlocks.length === 0) return;
 
     ScrollTrigger.getAll().forEach((trigger) => {
       if (trigger.vars.trigger === section || trigger.vars.pin === viewport) trigger.kill();
@@ -197,6 +501,24 @@ export default function HomePage() {
     const titleLines = titleHeading ? Array.from(titleHeading.querySelectorAll("span")) : [];
 
     const context = gsap.context(() => {
+      gsap.set(reveal, {
+        yPercent: 90,
+        borderRadius: "42px 42px 0 0",
+        transformOrigin: "bottom center",
+      });
+
+      gsap.to(reveal, {
+        yPercent: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1.2,
+          invalidateOnRefresh: true,
+        },
+      });
+
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (reduceMotion) {
@@ -440,41 +762,10 @@ export default function HomePage() {
     return () => context.revert();
   }, []);
   return (
-    <main className="pt-0">
-      <SchoolHero />
-
-      <CinematicLearningJourney />
-
-      <HeroFeatureSection />
-
-      <section ref={aboutSectionRef} className="relative z-30 h-[220vh] px-4 md:px-8">
-        <div ref={aboutViewportRef} className="sticky top-0 z-40 flex h-screen items-center overflow-hidden bg-[#f5f2eb]">
-          <div className="mx-auto grid w-full max-w-[1600px] items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="relative flex h-full w-full items-center justify-center">
-              <div ref={aboutImageWrapRef} className="relative h-[420px] w-full max-w-[540px] overflow-hidden rounded-[2rem] bg-slate-900 shadow-[0_40px_80px_rgba(15,23,42,0.16)] md:h-[500px]">
-                <img src="https://samcbse.org/images/about/text.png" alt="SAM school introduction" className="h-full w-full object-cover object-center" style={{ transform: "rotate(0deg)" }} />
-              </div>
-            </div>
-
-            <div ref={aboutTextRef} className="relative z-10 flex flex-col justify-center text-slate-700">
-              <div ref={aboutTitleRef} className="max-w-xl">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">About the school</p>
-                <h2 className="text-3xl font-semibold tracking-[-0.04em] text-slate-900 md:text-5xl">
-                  <span className="mb-1 block">A campus built for</span>
-                  <span className="mb-1 block">curiosity, confidence, and</span>
-                  <span className="block">character.</span>
-                </h2>
-                <p className="mt-4 text-base leading-7 text-slate-600 md:text-lg">SAM CBSE blends rigorous academics, meaningful co-curricular experiences, and a nurturing environment to help students thrive in every dimension of life.</p>
-              </div>
-
-              <div className="mt-8 space-y-6 text-lg leading-8">
-                <p ref={(element) => { aboutRevealRefs.current[0] = element; }}>{schoolBrand.about}</p>
-                <p ref={(element) => { aboutRevealRefs.current[1] = element; }}>{schoolBrand.mission}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <main className="relative z-10 -mt-12 md:-mt-16">
+      <SchoolStoryCinematic />
+      <OceanStoryGallerySection />
+      <CinematicScrollReveal />
 
       <section className="relative z-0 border-y border-slate-200 bg-[#f6f3ef]">
         <div className="mx-auto grid max-w-[1600px] gap-8 px-4 py-16 md:grid-cols-2 md:px-8 lg:grid-cols-4">
@@ -487,58 +778,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section ref={learningSectionRef} className="relative z-10 h-[260vh] overflow-hidden bg-[#101a28] text-white">
-        <div ref={learningViewportRef} className="sticky top-0 mx-auto flex h-screen max-w-[1600px] items-center justify-center px-4 md:px-8">
-          <div className="w-full">
-            <div className="mb-10 text-center">
-              <SectionTitle eyebrow="Academics" title="Academic stages built for every learner." description="A progressive learner journey guided by care, enquiry, and achievement." align="center" />
-            </div>
-
-            <div className="relative mx-auto h-[680px] w-full max-w-[1100px] [perspective:1600px] sm:h-[620px] md:h-[540px]">
-              {academicStages.map((stage, index) => (
-                <article
-                  key={stage.title}
-                  ref={(element) => { learningCardRefs.current[index] = element; }}
-                  className="absolute left-1/2 top-1/2 w-[min(88vw,700px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] border border-white/15 bg-white/5 shadow-[0_32px_90px_rgba(3,7,18,0.55)] backdrop-blur-sm will-change-transform"
-                  style={{ transformStyle: "preserve-3d" }}
+      <section className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
+        <div ref={facilitiesViewportRef} className="relative h-screen overflow-hidden bg-[#f4f1ea]">
+          <div className="absolute inset-x-0 top-0 z-[70]">
+            <SectionTitle eyebrow="Facilities" title="A campus designed for discovery and performance." />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 top-[180px] overflow-hidden">
+            {facilities.map((facility, index) => (
+              <div
+                key={facility.name}
+                ref={(element) => { facilitySceneRefs.current[index] = element; }}
+                className="absolute inset-0 grid grid-cols-1 items-center md:grid-cols-2 xl:grid-cols-3"
+                style={{ zIndex: index + 1 }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-4 z-10 text-5xl font-bold leading-none text-slate-900 md:left-[4%] md:top-1/2 md:-translate-y-1/2 md:text-[clamp(8rem,12vw,10rem)]"
                 >
-                  <div className="relative h-[360px] w-full overflow-hidden sm:h-[380px] md:h-[420px]">
-                    <img src={stage.image} alt={stage.title} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#091321]/85 via-[#091321]/20 to-transparent" />
+                  {index + 1}.
+                </span>
+                <article className="group relative z-20 overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-200 md:col-span-2 md:mx-auto md:w-1/2 xl:col-span-1 xl:col-start-2 xl:w-full">
+                  <div className="overflow-hidden">
+                    <img src={facility.image} alt={facility.name} className="h-72 w-full object-cover transition duration-700 group-hover:scale-105" />
                   </div>
-
-                  <div
-                    ref={(element) => { learningDetailRefs.current[index] = element; }}
-                    className="p-6 sm:p-7 md:p-8"
-                    style={{ opacity: 0, transform: "translateY(22px)", filter: "blur(8px)" }}
-                  >
-                    <div className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">{String(index + 1).padStart(2, "0")}</div>
-                    <h3 className="mt-3 text-2xl font-semibold text-white sm:text-[2rem]">{stage.title}</h3>
-                    <p className="mt-3 text-base leading-7 text-slate-300">{stage.description}</p>
-                    <Link href="/academics" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-sky-300">Learn more <ArrowRight className="h-4 w-4" /></Link>
+                  <div className="p-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Facility</p>
+                    <h3 className="mt-3 text-2xl font-semibold text-slate-900">{facility.name}</h3>
+                    <p className="mt-3 text-base leading-7 text-slate-600">{facility.description}</p>
                   </div>
                 </article>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
-        <SectionTitle eyebrow="Facilities" title="A campus designed for discovery and performance." />
-        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {facilities.map((facility) => (
-            <article key={facility.name} className="group overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-200">
-              <div className="overflow-hidden">
-                <img src={facility.image} alt={facility.name} className="h-72 w-full object-cover transition duration-700 group-hover:scale-105" />
-              </div>
-              <div className="p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Facility</p>
-                <h3 className="mt-3 text-2xl font-semibold text-slate-900">{facility.name}</h3>
-                <p className="mt-3 text-base leading-7 text-slate-600">{facility.description}</p>
-              </div>
-            </article>
-          ))}
         </div>
       </section>
 

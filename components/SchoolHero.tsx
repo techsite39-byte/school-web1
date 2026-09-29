@@ -10,7 +10,7 @@ const slides = [
   { eyebrow: "SPORTS", title: "ACTIVE MINDS", description: "Space to build teamwork, discipline and confidence through movement, play and shared achievement.", image: "/sports.png" },
 ] as const;
 
-const TOTAL_STAGES = 25;
+const TOTAL_STAGES = 14;
 type Phase = "landing" | "hero" | "carousel" | "front" | "frontHold" | "returnWithText" | "textHold" | "frontAgain" | "frontAgainHold" | "advance" | "complete" | "explore";
 
 export function SchoolHero() {
