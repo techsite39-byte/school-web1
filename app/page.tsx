@@ -403,6 +403,234 @@ function OceanStoryGallerySection() {
   );
 }
 
+function ActivitiesStoryGallery() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const viewport = viewportRef.current;
+    const slides = slideRefs.current.filter(Boolean) as HTMLDivElement[];
+
+    if (!section || !viewport || slides.length === 0) return;
+
+    const context = gsap.context(() => {
+      const getSlot = (slot: number) => {
+        const compact = window.innerWidth < 700;
+        const positions = compact
+          ? [
+              { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, zIndex: 10 },
+              { x: 34, y: -19, rotation: 9, scale: 0.62, opacity: 0.82, zIndex: 5 },
+              { x: -34, y: 18, rotation: -11, scale: 0.5, opacity: 0.6, zIndex: 3 },
+              { x: 0, y: 28, rotation: 16, scale: 0.46, opacity: 0.5, zIndex: 2 },
+            ]
+          : [
+              { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, zIndex: 10 },
+              { x: 30, y: -13, rotation: 11, scale: 0.68, opacity: 0.84, zIndex: 5 },
+              { x: 48, y: 18, rotation: 19, scale: 0.5, opacity: 0.58, zIndex: 2 },
+              { x: -31, y: 15, rotation: -12, scale: 0.68, opacity: 0.84, zIndex: 5 },
+            ];
+
+        return positions[(slot + positions.length) % positions.length];
+      };
+
+      slides.forEach((slide, index) => {
+        const state = getSlot(index);
+        gsap.set(slide, {
+          xPercent: -50, yPercent: -50,
+          x: `${state.x}vw`, y: `${state.y}vh`, rotation: state.rotation,
+          scale: state.scale, opacity: state.opacity, zIndex: state.zIndex,
+        });
+        const copy = slide.querySelector<HTMLElement>("[data-activity-copy]");
+        const number = slide.querySelector<HTMLElement>("[data-activity-number]");
+        gsap.set([copy, number], {
+          opacity: index === 0 ? 1 : 0,
+          y: index === 0 ? 0 : 24,
+          clipPath: index === 0 ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
+        });
+      });
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: `+=${Math.max(300, slides.length * 125)}%`,
+          scrub: 1,
+          pin: viewport,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      for (let activeIndex = 0; activeIndex < slides.length - 1; activeIndex += 1) {
+        slides.forEach((slide, index) => {
+          const currentState = getSlot((index - activeIndex + slides.length) % slides.length);
+          const state = getSlot((index - activeIndex - 1 + slides.length) % slides.length);
+          const midpoint = {
+            x: (currentState.x + state.x) / 2,
+            y: (currentState.y + state.y) / 2 + (state.x >= currentState.x ? -7 : 7),
+            rotation: (currentState.rotation + state.rotation) / 2,
+            scale: (currentState.scale + state.scale) / 2,
+          };
+          timeline.to(slide, {
+            x: `${midpoint.x}vw`, y: `${midpoint.y}vh`, rotation: midpoint.rotation,
+            scale: midpoint.scale, zIndex: state.zIndex, duration: 0.48, ease: "none",
+          }, activeIndex);
+          timeline.to(slide, {
+            x: `${state.x}vw`, y: `${state.y}vh`, rotation: state.rotation,
+            scale: state.scale, opacity: state.opacity, duration: 0.52, ease: "none",
+          }, activeIndex + 0.48);
+        });
+
+        const outgoingCopy = slides[activeIndex].querySelectorAll<HTMLElement>("[data-activity-copy]");
+        const incomingCopy = slides[activeIndex + 1].querySelectorAll<HTMLElement>("[data-activity-copy]");
+        timeline.to(outgoingCopy, { opacity: 0, y: -24, clipPath: "inset(0 0 100% 0)", duration: 0.2 }, activeIndex + 0.72);
+        timeline.to(incomingCopy, { opacity: 1, y: 0, clipPath: "inset(0 0 0 0)", duration: 0.25, stagger: 0.04 }, activeIndex + 0.78);
+      }
+    }, section);
+
+    const refreshAfterImageLoad = () => ScrollTrigger.refresh();
+    const images = Array.from(viewport.querySelectorAll("img"));
+    images.forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener("load", refreshAfterImageLoad);
+        image.addEventListener("error", refreshAfterImageLoad);
+      }
+    });
+    ScrollTrigger.refresh();
+
+    return () => {
+      context.revert();
+      images.forEach((image) => {
+        image.removeEventListener("load", refreshAfterImageLoad);
+        image.removeEventListener("error", refreshAfterImageLoad);
+      });
+    };
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="activities-story-section">
+      <div ref={viewportRef} className="activities-story-viewport">
+        <div className="activities-story-heading">
+          <SectionTitle eyebrow="Student life" title="Activities that bring learning to life." />
+        </div>
+        <div className="activities-story-gallery">
+          {activities.map((activity, index) => (
+            <div key={activity.title} ref={(element) => { slideRefs.current[index] = element; }} className="activities-story-slide">
+              <img src={activity.image} alt={activity.title} className="activities-story-image" />
+              <div data-activity-copy className="activities-story-copy">
+                <div data-activity-number className="activities-story-number">{String(index + 1).padStart(2, "0")}</div>
+                <p className="activities-story-kicker">Activity</p>
+                <h3>{activity.title}</h3>
+                <p>{activity.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="activities-story-scroll-hint">Scroll to explore</p>
+      </div>
+    </section>
+  );
+}
+
+function AboutSchoolStorySection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const backgroundRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const chapters = [
+    { image: "/school.png", label: "About the school", title: "Learning with purpose, growing with confidence.", text: schoolBrand.about },
+    { image: "/building1.png", label: "Our mission", title: "A nurturing environment for every learner.", text: schoolBrand.mission },
+    { image: "/technology.png", label: "Our vision", title: "Future-ready learners rooted in values.", text: schoolBrand.vision },
+  ];
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const viewport = viewportRef.current;
+    const backgrounds = backgroundRefs.current.filter(Boolean) as HTMLImageElement[];
+    const chapters = chapterRefs.current.filter(Boolean) as HTMLDivElement[];
+
+    if (!section || !viewport || backgrounds.length !== 3 || chapters.length !== 3) return;
+
+    const context = gsap.context(() => {
+      gsap.set(backgrounds, { yPercent: 100, scale: 1.08 });
+      gsap.set(backgrounds[0], { yPercent: 0 });
+      gsap.set(chapters, { opacity: 0, y: 28, clipPath: "inset(100% 0 0 0)" });
+      gsap.set(chapters[0], { opacity: 1, y: 0, clipPath: "inset(0 0 0 0)" });
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 1,
+          pin: viewport,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      chapters.slice(1).forEach((chapter, index) => {
+        const position = index + 1;
+        timeline.to(backgrounds[position - 1], { yPercent: -100, duration: 0.7, ease: "none" }, position - 0.1);
+        timeline.to(backgrounds[position], { yPercent: 0, duration: 0.7, ease: "none" }, position - 0.1);
+        timeline.to(chapters[position - 1], { opacity: 0, y: -28, clipPath: "inset(0 0 100% 0)", duration: 0.22 }, position - 0.08);
+        timeline.to(chapter, { opacity: 1, y: 0, clipPath: "inset(0 0 0 0)", duration: 0.28 }, position + 0.08);
+      });
+    }, section);
+
+    const refreshAfterImageLoad = () => ScrollTrigger.refresh();
+    backgrounds.forEach((background) => {
+      if (!background.complete) {
+        background.addEventListener("load", refreshAfterImageLoad);
+        background.addEventListener("error", refreshAfterImageLoad);
+      }
+    });
+    ScrollTrigger.refresh();
+
+    return () => {
+      context.revert();
+      backgrounds.forEach((background) => {
+        background.removeEventListener("load", refreshAfterImageLoad);
+        background.removeEventListener("error", refreshAfterImageLoad);
+      });
+    };
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="about-school-story-section">
+      <div ref={viewportRef} className="about-school-story-viewport">
+        {chapters.map((chapter, index) => (
+          <img
+            key={chapter.image}
+            ref={(element) => { backgroundRefs.current[index] = element; }}
+            src={chapter.image}
+            alt=""
+            aria-hidden="true"
+            className="about-school-story-background"
+          />
+        ))}
+        <div className="about-school-story-shade" />
+        <div className="about-school-story-content">
+          <span className="about-school-story-index">01 / 03</span>
+          {chapters.map((chapter, index) => (
+            <div key={chapter.label} ref={(element) => { chapterRefs.current[index] = element; }} className="about-school-story-chapter">
+              <p>{chapter.label}</p>
+              <h2>{chapter.title}</h2>
+              <span>{chapter.text}</span>
+            </div>
+          ))}
+        </div>
+        <div className="about-school-story-rule" />
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null);
   const aboutViewportRef = useRef<HTMLDivElement | null>(null);
@@ -416,17 +644,21 @@ export default function HomePage() {
     const galleryCompleteRef = useRef(false);
   const learningCardRefs = useRef<(HTMLElement | null)[]>([]);
   const learningDetailRefs = useRef<(HTMLElement | null)[]>([]);
+  const activitiesSectionRef = useRef<HTMLElement | null>(null);
+  const activityCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const facilitiesSectionRef = useRef<HTMLElement | null>(null);
   const facilitiesViewportRef = useRef<HTMLDivElement | null>(null);
   const facilitySceneRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
+    const section = facilitiesSectionRef.current;
     const viewport = facilitiesViewportRef.current;
     const scenes = facilitySceneRefs.current.filter(Boolean) as HTMLDivElement[];
 
-    if (!viewport || scenes.length !== facilities.length) return;
+    if (!section || !viewport || scenes.length !== facilities.length) return;
 
     ScrollTrigger.getAll().forEach((trigger) => {
-      if (trigger.vars.trigger === viewport || trigger.vars.pin === viewport) trigger.kill();
+      if (trigger.vars.trigger === section || trigger.vars.pin === viewport) trigger.kill();
     });
 
     const context = gsap.context(() => {
@@ -439,22 +671,18 @@ export default function HomePage() {
 
       const timeline = gsap.timeline({
         scrollTrigger: {
-          trigger: viewport,
+          trigger: section,
           start: "top top",
-          end: "+=150%",
-          scrub: true,
-          pin: viewport,
-          pinSpacing: true,
-          anticipatePin: 1,
+          end: "bottom bottom",
+          scrub: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      scenes.slice(1).forEach((scene, index) => {
-        const transitionStart = index;
-        timeline.to(scenes[index], { yPercent: -100, ease: "none" }, transitionStart);
-        timeline.to(scene, { yPercent: 0, ease: "none" }, transitionStart);
+      scenes.slice(1).forEach((scene) => {
+        timeline.to(scene, { yPercent: 0, duration: 1, ease: "none" });
       });
+      timeline.to({}, { duration: 0.35 });
     }, viewport);
 
     const images = Array.from(viewport.querySelectorAll("img"));
@@ -476,7 +704,107 @@ export default function HomePage() {
         image.removeEventListener("error", refreshAfterImageLoad);
       });
       ScrollTrigger.getAll().forEach((trigger) => {
-        if (trigger.vars.trigger === viewport || trigger.vars.pin === viewport) trigger.kill();
+        if (trigger.vars.trigger === section || trigger.vars.pin === viewport) trigger.kill();
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const section = activitiesSectionRef.current;
+    const cards = activityCardRefs.current.filter(Boolean) as HTMLDivElement[];
+
+    if (!section || cards.length === 0) return;
+
+    ScrollTrigger.getAll().forEach((trigger) => {
+      if (cards.includes(trigger.vars.trigger as HTMLDivElement)) trigger.kill();
+    });
+
+    const context = gsap.context(() => {
+      cards.forEach((card, index) => {
+        const image = card.querySelector<HTMLImageElement>("img");
+        const copy = Array.from(card.querySelectorAll<HTMLElement>("[data-activity-copy] > *"));
+
+        if (!image || copy.length === 0) return;
+
+        const revealsFromLeft = index % 2 === 0;
+        const isDiagonalReveal = index % 4 >= 2;
+        const hiddenClipPath = isDiagonalReveal
+          ? revealsFromLeft
+            ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+            : "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)"
+          : revealsFromLeft
+            ? "inset(0 100% 0 0)"
+            : "inset(0 0 0 100%)";
+        const fullClipPath = isDiagonalReveal
+          ? "polygon(0 0, 100% 0, 100% 100%, 0 100%)"
+          : "inset(0 0 0 0)";
+        const textDirection = revealsFromLeft ? 1 : -1;
+
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: card,
+            start: "top 80%",
+            end: "top 35%",
+            scrub: 0.8,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        timeline.fromTo(
+          image,
+          { clipPath: hiddenClipPath },
+          { clipPath: fullClipPath, duration: 0.72, ease: "none" },
+          0,
+        );
+        timeline.fromTo(
+          image,
+          {
+            objectPosition: () => {
+              const offset = window.innerWidth < 640 ? 4 : window.innerWidth < 1024 ? 6 : 8;
+              return `${50 + (revealsFromLeft ? -offset : offset)}% 50%`;
+            },
+          },
+          { objectPosition: "50% 50%", duration: 0.72, ease: "none" },
+          0,
+        );
+        timeline.fromTo(
+          copy,
+          {
+            x: () => {
+              const distance = window.innerWidth < 640 ? 14 : window.innerWidth < 1024 ? 24 : 40;
+              return textDirection * distance;
+            },
+          },
+          { x: 0, duration: 0.48, stagger: 0.07, ease: "power2.out" },
+          0.18,
+        );
+      });
+    }, section);
+
+    const images = cards
+      .map((card) => card.querySelector("img"))
+      .filter(Boolean) as HTMLImageElement[];
+    const refreshAfterImageLoad = () => ScrollTrigger.refresh();
+
+    images.forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener("load", refreshAfterImageLoad);
+        image.addEventListener("error", refreshAfterImageLoad);
+      }
+    });
+
+    ScrollTrigger.refresh();
+
+    return () => {
+      context.revert();
+      images.forEach((image) => {
+        image.removeEventListener("load", refreshAfterImageLoad);
+        image.removeEventListener("error", refreshAfterImageLoad);
+      });
+      cards.forEach((card) => {
+        ScrollTrigger.getAll().forEach((trigger) => {
+          if (trigger.vars.trigger === card) trigger.kill();
+        });
       });
     };
   }, []);
@@ -767,6 +1095,8 @@ export default function HomePage() {
       <OceanStoryGallerySection />
       <CinematicScrollReveal />
 
+      <AboutSchoolStorySection />
+
       <section className="relative z-0 border-y border-slate-200 bg-[#f6f3ef]">
         <div className="mx-auto grid max-w-[1600px] gap-8 px-4 py-16 md:grid-cols-2 md:px-8 lg:grid-cols-4">
           {stats.map((stat) => (
@@ -778,8 +1108,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
-        <div ref={facilitiesViewportRef} className="relative h-screen overflow-hidden bg-[#f4f1ea]">
+      <section ref={facilitiesSectionRef} className="mx-auto max-w-[1600px] px-4 py-24 md:px-8" style={{ minHeight: `${(facilities.length + 1) * 100}vh` }}>
+        <div ref={facilitiesViewportRef} className="sticky top-0 relative h-screen overflow-hidden bg-[#f4f1ea]">
           <div className="absolute inset-x-0 top-0 z-[70]">
             <SectionTitle eyebrow="Facilities" title="A campus designed for discovery and performance." />
           </div>
@@ -788,7 +1118,7 @@ export default function HomePage() {
               <div
                 key={facility.name}
                 ref={(element) => { facilitySceneRefs.current[index] = element; }}
-                className="absolute inset-0 grid grid-cols-1 items-center md:grid-cols-2 xl:grid-cols-3"
+                className="absolute inset-0 grid grid-cols-1 items-center bg-[#f4f1ea] md:grid-cols-2 xl:grid-cols-3"
                 style={{ zIndex: index + 1 }}
               >
                 <span
@@ -813,23 +1143,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#f3efe8]">
-        <div className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
-          <SectionTitle eyebrow="Student life" title="Activities that bring learning to life." />
-          <div className="mt-12 grid gap-8 lg:grid-cols-2">
-            {activities.map((activity) => (
-              <div key={activity.title} className="grid overflow-hidden rounded-[2rem] bg-white md:grid-cols-[1fr_1.1fr]">
-                <img src={activity.image} alt={activity.title} className="h-full min-h-[260px] w-full object-cover" />
-                <div className="flex flex-col justify-center p-8">
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">Activity</p>
-                  <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-900">{activity.title}</h3>
-                  <p className="mt-4 text-base leading-7 text-slate-600">{activity.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivitiesStoryGallery />
 
       <section className="mx-auto max-w-[1600px] px-4 py-24 md:px-8">
         <SectionTitle eyebrow="News & events" title="Stories from campus life and achievement." />
