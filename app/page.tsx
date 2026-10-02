@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { CinematicScrollReveal } from "@/components/CinematicScrollReveal";
 import { SchoolStoryCinematic } from "@/components/SchoolStoryCinematic";
+import { SchoolJourneyHero } from "@/components/SchoolJourneyHero";
 import { SectionTitle } from "@/components/SectionTitle";
 import {
   academicStages,
@@ -1091,6 +1092,7 @@ export default function HomePage() {
   }, []);
   return (
     <main className="relative z-10 -mt-12 md:-mt-16">
+      <SchoolJourneyHero />
       <SchoolStoryCinematic />
       <OceanStoryGallerySection />
       <CinematicScrollReveal />

@@ -1,0 +1,131 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500&display=swap");
+
+.film {
+  position: relative;
+  height: 800vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #05070d;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, #02040a99 100%);
+}
+
+.black {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #02040a;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #eef1ee;
+  opacity: 0;
+}
+
+.text {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  padding: 0 6vw;
+  transform: translateY(-50%);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 40px #000a;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.text h2,
+.text h1 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 300;
+  line-height: 1.1;
+}
+
+.text h2 {
+  font-size: clamp(28px, 5vw, 64px);
+}
+
+.text h1 {
+  font-size: clamp(38px, 8vw, 112px);
+}
+
+.text p {
+  margin-top: 18px;
+  color: #ffe3bd;
+  font: 400 clamp(15px, 1.6vw, 22px)/1.6 "Instrument Sans", system-ui, sans-serif;
+  letter-spacing: 0.2em;
+}
+
+.hud {
+  position: absolute;
+  right: 5vw;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 5vw;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  color: #fffc;
+  font: 400 13px/1.6 "Instrument Sans", system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.scrollCue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  transition: opacity 0.5s;
+}
+
+.scrollCue i {
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(#fff, transparent);
+  animation: scroll-line 2s ease-in-out infinite;
+}
+
+.shot {
+  min-width: 132px;
+}
+
+.noGl {
+  height: 100vh;
+  height: 100svh;
+}
+
+.noGl .title {
+  opacity: 1 !important;
+}
+
+@keyframes scroll-line {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
